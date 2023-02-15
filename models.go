@@ -2,6 +2,7 @@ package main
 
 import (
 	"bdpan/common"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 )
@@ -19,7 +20,11 @@ func newCredentail(c Credential) *_Credential {
 }
 
 func (c _Credential) GetCredentail() (*Credential, error) {
-	bytes, err := decrypt([]byte(c.Credentail))
+	str, err := hex.DecodeString(c.Credentail)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := decrypt(str)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +45,7 @@ func (c *_Credential) SetCredentail(cre Credential) error {
 	if err != nil {
 		return err
 	}
-	c.Credentail = string(bytes)
+	c.Credentail = hex.EncodeToString(bytes)
 	return nil
 }
 

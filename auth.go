@@ -9,7 +9,16 @@ import (
 	// "os"
 	// "os/exec"
 	// "time"
+	"bdpan/common"
 	sdk "bdpan/openapi"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"os/exec"
+	"time"
 	// "website/common"
 )
 
@@ -74,20 +83,20 @@ type AppConfig struct {
 // apiClient = sdk.NewAPIClient(configuration)
 // }
 
-// func convertErrorResponse(r *http.Response) *ErrorResponse {
-// bodyBytes, err := ioutil.ReadAll(r.Body)
-// if err != nil {
-// fmt.Fprintf(os.Stderr, "err: %v\n", r)
-// panic(err)
-// }
-// var res ErrorResponse
-// if err := json.Unmarshal(bodyBytes, &res); err != nil {
-// fmt.Println(err)
-// panic(err)
-// }
-// res.r = r
-// return &res
-// }
+func convertErrorResponse(r *http.Response) *ErrorResponse {
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "err: %v\n", r)
+		panic(err)
+	}
+	var res ErrorResponse
+	if err := json.Unmarshal(bodyBytes, &res); err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	res.r = r
+	return &res
+}
 
 // func getAccessTokenByDeviceCode(code string) (sdk.OauthTokenDeviceTokenResponse, *ErrorResponse) {
 // resp, r, err := apiClient.AuthApi.OauthTokenDeviceToken(
@@ -101,83 +110,83 @@ type AppConfig struct {
 // return resp, nil
 // }
 
-// func openDeviceCodeQrCode() string {
-// scope := "basic,netdisk" // string
-// resp, r, err := apiClient.AuthApi.OauthTokenDeviceCode(
-// context.Background()).ClientId(config.AppKey).Scope(scope).Execute()
-// if err != nil {
-// convertErrorResponse(r).Print()
-// panic(err)
-// }
-// code := *resp.DeviceCode
-// qrcode := *resp.QrcodeUrl
-// fmt.Printf("DeviceCode: %s\n", code)
-// cmd := exec.Command("open", qrcode)
-// err = cmd.Run()
-// if err != nil {
-// panic(err)
-// }
-// return code
-// }
+func openDeviceCodeQrCode() string {
+	scope := "basic,netdisk" // string
+	resp, r, err := apiClient.AuthApi.OauthTokenDeviceCode(
+		context.Background()).ClientId(config.AppKey).Scope(scope).Execute()
+	if err != nil {
+		convertErrorResponse(r).Print()
+		panic(err)
+	}
+	code := *resp.DeviceCode
+	qrcode := *resp.QrcodeUrl
+	fmt.Printf("DeviceCode: %s\n", code)
+	cmd := exec.Command("open", qrcode)
+	err = cmd.Run()
+	if err != nil {
+		panic(err)
+	}
+	return code
+}
 
-// func CreateAccessTokenByDeviceCode() {
-// fmt.Println("请求 device_code")
-// code := openDeviceCodeQrCode()
-// fmt.Println("等待扫码")
-// time.Sleep(time.Duration(10) * time.Second)
-// fmt.Println("请求 access_token")
-// // 请求 token
-// _, r, err := apiClient.AuthApi.OauthTokenDeviceToken(
-// context.Background()).Code(
-// code).ClientId(
-// config.AppKey).ClientSecret(
-// config.SecretKey).Execute()
-// if err != nil {
-// convertErrorResponse(r).Print()
-// return
-// }
-// // fmt.Println(errRes)
-// // for errRes != nil {
-// // time.Sleep(time.Duration(2) * time.Second)
-// // tokenRes, errRes = getAccessTokenByDeviceCode(code)
-// // errRes.Print()
-// // fmt.Fprintln(os.Stderr, "等待重试...")
-// // }
-// // fmt.Println(*tokenRes.AccessToken)
-// // fmt.Println(*tokenRes.RefreshToken)
-// // fmt.Println(*tokenRes.ExpiresIn)
+func CreateAccessTokenByDeviceCode() {
+	fmt.Println("请求 device_code")
+	code := openDeviceCodeQrCode()
+	fmt.Println("等待扫码")
+	time.Sleep(time.Duration(10) * time.Second)
+	fmt.Println("请求 access_token")
+	// 请求 token
+	_, r, err := apiClient.AuthApi.OauthTokenDeviceToken(
+		context.Background()).Code(
+		code).ClientId(
+		config.AppKey).ClientSecret(
+		config.SecretKey).Execute()
+	if err != nil {
+		convertErrorResponse(r).Print()
+		return
+	}
+	// fmt.Println(errRes)
+	// for errRes != nil {
+	// time.Sleep(time.Duration(2) * time.Second)
+	// tokenRes, errRes = getAccessTokenByDeviceCode(code)
+	// errRes.Print()
+	// fmt.Fprintln(os.Stderr, "等待重试...")
+	// }
+	// fmt.Println(*tokenRes.AccessToken)
+	// fmt.Println(*tokenRes.RefreshToken)
+	// fmt.Println(*tokenRes.ExpiresIn)
 
-// // var _token AccessToken
-// // _token.AccessToken = *tokenRes.AccessToken
-// // _token.RefreshToken = *tokenRes.RefreshToken
-// // _token.ExpiresIn = *tokenRes.ExpiresIn
-// HttpResponseToAccessToken(r, _token)
-// saveAccessToken(*_token)
-// }
+	// var _token AccessToken
+	// _token.AccessToken = *tokenRes.AccessToken
+	// _token.RefreshToken = *tokenRes.RefreshToken
+	// _token.ExpiresIn = *tokenRes.ExpiresIn
+	HttpResponseToAccessToken(r, _token)
+	saveAccessToken(*_token)
+}
 
-// func saveAccessToken(t AccessToken) {
-// tokenMap, err := t.ToMap()
-// if err != nil {
-// panic(err)
-// }
-// err = common.WriteMapToFile(TOKEN_PATH, tokenMap)
-// if err != nil {
-// panic(err)
-// }
+func saveAccessToken(t AccessToken) {
+	tokenMap, err := common.ToMap(t)
+	if err != nil {
+		panic(err)
+	}
+	err = common.WriteMapToFile(TOKEN_PATH, tokenMap)
+	if err != nil {
+		panic(err)
+	}
 
-// }
+}
 
-// func HttpResponseToAccessToken(r *http.Response, t *AccessToken) error {
-// bodyBytes, err := ioutil.ReadAll(r.Body)
-// if err != nil {
-// return err
-// }
-// if err := json.Unmarshal(bodyBytes, t); err != nil {
-// return err
-// }
-// t.RefreshTimestamp = time.Now().Unix()
-// return nil
-// }
+func HttpResponseToAccessToken(r *http.Response, t *AccessToken) error {
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(bodyBytes, t); err != nil {
+		return err
+	}
+	t.RefreshTimestamp = time.Now().Unix()
+	return nil
+}
 
 // func RefreshAccessToken() {
 // fmt.Println("开始刷新 access_token")

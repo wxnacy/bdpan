@@ -62,12 +62,7 @@ func ReadFileToMap(path string) (map[string]interface{}, error) {
 }
 
 func ReadFileToInterface(path string, i interface{}) error {
-	d, err := ReadFileToMap(path)
-	if err != nil {
-		return err
-	}
-
-	b, err := json.Marshal(d)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}

@@ -47,24 +47,32 @@ func initArgparse() {
 func initLoginArgparse(parser *argparse.Parser) {
 	loginCommand = parser.NewCommand("login", "登录网盘")
 	loginArg = LoginArg{}
-	// loginArg.AppId = loginCommand.String("", "id",
-	// &argparse.Options{Required: false, Help: "Video ID"},
-	// )
+	loginArg.AppId = loginCommand.String("", "app-id",
+		&argparse.Options{Required: false, Help: "指定添加 App Id"},
+	)
 
 }
 
 type LoginArg struct {
-	// AppId     *string
+	AppId *string
 	// AppKey    *string
 	// SecretKey *string
 	// SignKey   *string
 }
 
 func main() {
+	if !testCommand.Happened() {
+		_, err = defaultCredentail()
+		if err != nil {
+			fmt.Println("请先执行 bdpan login 进行登录")
+			return
+		}
+
+	}
 	if testCommand.Happened() {
 		fmt.Println("test")
 	} else if loginCommand.Happened() {
-		login()
+		Login(loginArg)
 	} else {
 		fmt.Println("no command")
 	}

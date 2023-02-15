@@ -16,6 +16,15 @@ var (
 	credentialsPath = joinConfigPath("credentials")
 )
 
+func defaultCredentail() (*Credential, error) {
+	items, err := GetCredentails()
+	if err != nil {
+		return nil, err
+	}
+
+	return items[0], nil
+}
+
 func initConfigDir() error {
 	return os.MkdirAll(conifg_dir, common.PermDir)
 }
@@ -41,35 +50,48 @@ func GetKey() ([]byte, error) {
 	return os.ReadFile(keyPath)
 }
 
-func saveCredentail(c Credential) error {
-	credentials := make([]_Credential, 0)
-	err = common.ReadFileToInterface(credentialsPath, &credentials)
-	if err != nil {
-		return err
-	}
+func saveCredentail(credentials []_Credential, c Credential) error {
 	credentials = append(credentials, *newCredentail(c))
 	return common.WriteInterfaceToFile(credentialsPath, credentials)
 }
 
-func getCredentail(appId string) (*Credential, error) {
-	credentials := make([]_Credential, 0)
-	err = common.ReadFileToInterface(credentialsPath, &credentials)
+func GetCredentail(appId string) (*Credential, error) {
+	credentials, err := GetCredentails()
 	if err != nil {
 		return nil, err
 	}
 	for _, c := range credentials {
 		if c.AppId == appId {
-			return c.GetCredentail()
+			return c, nil
 		}
 	}
 	return nil, errors.New(fmt.Sprintf("AppId %s credentail not found", appId))
 }
 
-func GetCredentail() (*Credential, error) {
+func GetCredentails() ([]*Credential, error) {
+	credentials := make([]_Credential, 0)
+	err = common.ReadFileToInterface(credentialsPath, &credentials)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*Credential, 0)
+	for _, c := range credentials {
+		cre, err := c.GetCredentail()
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, cre)
+	}
 
-	return nil, nil
+	return res, nil
 }
 
-func AddCredentail(c Credential) {
-
+func AddCredentail(c Credential) error {
+	credentials := make([]_Credential, 0)
+	err = common.ReadFileToInterface(credentialsPath, &credentials)
+	if err != nil {
+		// TODO: 增加错误日志
+		credentials = make([]_Credential, 0)
+	}
+	return saveCredentail(credentials, c)
 }
