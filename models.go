@@ -1,15 +1,13 @@
 package main
 
 import (
-	"bdpan/common"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 )
 
 type _Credential struct {
-	AppId      string `json:"app_id,omitempty"`
-	Credentail string `json:"credentail,omitempty"`
+	AppId       string `json:"app_id,omitempty"`
+	Credentail  string `json:"credentail,omitempty"`
+	AccessToken string `json:"access_token,omitempty"`
 }
 
 func newCredentail(c Credential) *_Credential {
@@ -20,16 +18,8 @@ func newCredentail(c Credential) *_Credential {
 }
 
 func (c _Credential) GetCredentail() (*Credential, error) {
-	str, err := hex.DecodeString(c.Credentail)
-	if err != nil {
-		return nil, err
-	}
-	bytes, err := decrypt(str)
-	if err != nil {
-		return nil, err
-	}
 	res := &Credential{}
-	err = json.Unmarshal(bytes, res)
+	err = decryptHexToInterface(c.Credentail, res)
 	if err != nil {
 		return nil, err
 	}
@@ -37,15 +27,31 @@ func (c _Credential) GetCredentail() (*Credential, error) {
 }
 
 func (c *_Credential) SetCredentail(cre Credential) error {
-	str, err := common.ToMapString(cre)
+
+	str, err := encryptInterfaceToHex(cre)
 	if err != nil {
 		return err
 	}
-	bytes, err := encrypt([]byte(str))
+	c.Credentail = str
+	return nil
+}
+
+func (c _Credential) GetAccessToken() (*AccessToken, error) {
+	res := &AccessToken{}
+	err = decryptHexToInterface(c.AccessToken, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *_Credential) SetAccessToken(a AccessToken) error {
+
+	str, err := encryptInterfaceToHex(a)
 	if err != nil {
 		return err
 	}
-	c.Credentail = hex.EncodeToString(bytes)
+	c.AccessToken = str
 	return nil
 }
 
@@ -56,13 +62,7 @@ type Credential struct {
 	SignKey   string `json:"sign_key,omitempty"`
 }
 
-func (c Credential) Encrypt() string {
-	str, _ := common.ToMapString(c)
-	return common.Md5(str)
-}
-
 type AccessToken struct {
-	Response
 	ExpiresIn        int32  `json:"expires_in,omitempty"`
 	AccessToken      string `json:"access_token,omitempty"`
 	RefreshToken     string `json:"refresh_token,omitempty"`

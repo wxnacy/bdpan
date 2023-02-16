@@ -1,14 +1,6 @@
 package main
 
 import (
-	// "context"
-	// "encoding/json"
-	// "fmt"
-	// "io/ioutil"
-	// "net/http"
-	// "os"
-	// "os/exec"
-	// "time"
 	"bdpan/common"
 	sdk "bdpan/openapi"
 	"context"
@@ -19,7 +11,6 @@ import (
 	"os"
 	"os/exec"
 	"time"
-	// "website/common"
 )
 
 func init() {
@@ -47,41 +38,41 @@ type AppConfig struct {
 	SignKey   string `json:"sign_key"`
 }
 
-// func buildConfig() {
-// m, err := common.ReadFileToMap(CONFIG_PATH)
-// if err != nil {
-// panic(err)
-// }
+func buildConfig() {
+	m, err := common.ReadFileToMap(CONFIG_PATH)
+	if err != nil {
+		panic(err)
+	}
 
-// b, err := json.MarshalIndent(m, "", "")
-// if err != nil {
-// panic(err)
-// }
-// err = json.Unmarshal(b, &config)
-// if err != nil {
-// panic(err)
-// }
-// }
+	b, err := json.MarshalIndent(m, "", "")
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(b, &config)
+	if err != nil {
+		panic(err)
+	}
+}
 
-// func buildAccessToken() {
-// if !common.FileExists(TOKEN_PATH) {
-// fmt.Fprintf(os.Stderr, "配置: %s 不存在\n", TOKEN_PATH)
-// return
-// }
-// if _token != nil {
-// return
-// }
-// _token = &AccessToken{}
-// err := common.ReadFileToModel(TOKEN_PATH, _token)
-// if err != nil {
-// panic(err)
-// }
-// }
+func buildAccessToken() {
+	if !common.FileExists(TOKEN_PATH) {
+		fmt.Fprintf(os.Stderr, "配置: %s 不存在\n", TOKEN_PATH)
+		return
+	}
+	if _token != nil {
+		return
+	}
+	_token = &AccessToken{}
+	err := common.ReadFileToInterface(TOKEN_PATH, _token)
+	if err != nil {
+		panic(err)
+	}
+}
 
-// func buildApiClient() {
-// configuration := sdk.NewConfiguration()
-// apiClient = sdk.NewAPIClient(configuration)
-// }
+func buildApiClient() {
+	configuration := sdk.NewConfiguration()
+	apiClient = sdk.NewAPIClient(configuration)
+}
 
 func convertErrorResponse(r *http.Response) *ErrorResponse {
 	bodyBytes, err := ioutil.ReadAll(r.Body)
@@ -188,43 +179,45 @@ func HttpResponseToAccessToken(r *http.Response, t *AccessToken) error {
 	return nil
 }
 
-// func RefreshAccessToken() {
-// fmt.Println("开始刷新 access_token")
-// if _token == nil || _token.AccessToken == "" {
-// fmt.Println("初始 access_token 不存在，重新走申请流程")
-// CreateAccessTokenByDeviceCode()
-// return
-// }
-// fmt.Println("当前信息")
-// _token.Print()
-// _, r, err := apiClient.AuthApi.OauthTokenRefreshToken(context.Background()).RefreshToken(_token.RefreshToken).ClientId(config.AppKey).ClientSecret(config.SecretKey).Execute()
-// if err != nil {
-// errRes := convertErrorResponse(r)
-// if errRes.ErrorDescription == "refresh token has been used" {
-// fmt.Println("refresh_token 已被使用，重新走申请流程")
-// CreateAccessTokenByDeviceCode()
-// return
-// }
-// errRes.Print()
-// return
-// }
-// err = HttpResponseToAccessToken(r, _token)
-// if err != nil {
-// convertErrorResponse(r).Print()
-// panic(err)
-// }
-// _token.Print()
-// saveAccessToken(*_token)
-// fmt.Println("access_token 刷新完成")
-// }
+func RefreshAccessToken() {
+	fmt.Println("开始刷新 access_token")
+	if _token == nil || _token.AccessToken == "" {
+		fmt.Println("初始 access_token 不存在，重新走申请流程")
+		CreateAccessTokenByDeviceCode()
+		return
+	}
+	fmt.Println("当前信息")
+	_token.Print()
+	_, r, err := apiClient.AuthApi.OauthTokenRefreshToken(
+		context.Background()).RefreshToken(_token.RefreshToken).ClientId(
+		config.AppKey).ClientSecret(config.SecretKey).Execute()
+	if err != nil {
+		errRes := convertErrorResponse(r)
+		if errRes.ErrorDescription == "refresh token has been used" {
+			fmt.Println("refresh_token 已被使用，重新走申请流程")
+			CreateAccessTokenByDeviceCode()
+			return
+		}
+		errRes.Print()
+		return
+	}
+	err = HttpResponseToAccessToken(r, _token)
+	if err != nil {
+		convertErrorResponse(r).Print()
+		panic(err)
+	}
+	_token.Print()
+	saveAccessToken(*_token)
+	fmt.Println("access_token 刷新完成")
+}
 
-// func ScheRefreshAccessToken() {
-// expiresSecond := 7 * 24 * 3600
-// refreshTime := time.Unix(_token.RefreshTimestamp, 0)
-// if time.Now().Sub(refreshTime).Seconds() < float64(expiresSecond) {
-// fmt.Println("当前 access_token 已经是最新，无需刷新")
-// return
-// }
+func ScheRefreshAccessToken() {
+	expiresSecond := 7 * 24 * 3600
+	refreshTime := time.Unix(_token.RefreshTimestamp, 0)
+	if time.Now().Sub(refreshTime).Seconds() < float64(expiresSecond) {
+		fmt.Println("当前 access_token 已经是最新，无需刷新")
+		return
+	}
 
-// RefreshAccessToken()
-// }
+	RefreshAccessToken()
+}

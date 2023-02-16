@@ -8,15 +8,9 @@ import (
 )
 
 func init() {
+	fmt.Println("init")
 	initArgparse()
-	err = initConfigDir()
-	if err != nil {
-		panic(err)
-	}
-	err = initCryptoKey()
-	if err != nil {
-		panic(err)
-	}
+	initAll()
 }
 
 var (
@@ -61,6 +55,7 @@ type LoginArg struct {
 }
 
 func main() {
+	fmt.Println("main")
 	if !testCommand.Happened() {
 		_, err = defaultCredentail()
 		if err != nil {

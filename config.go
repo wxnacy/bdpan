@@ -14,6 +14,7 @@ var (
 	conifg_dir, _   = common.ExpandUser("~/.config/bdpan")
 	keyPath         = joinConfigPath("key")
 	credentialsPath = joinConfigPath("credentials")
+	tokenPath       = joinConfigPath("access_token")
 )
 
 func defaultCredentail() (*Credential, error) {
@@ -24,6 +25,14 @@ func defaultCredentail() (*Credential, error) {
 
 	return items[0], nil
 }
+
+// func defaultAccessToken() (*AccessToken, error) {
+// items, err := GetCredentails()
+// if err != nil {
+// return nil, err
+// }
+// return items[0]., nil
+// }
 
 func initConfigDir() error {
 	return os.MkdirAll(conifg_dir, common.PermDir)
