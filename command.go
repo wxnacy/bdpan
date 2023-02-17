@@ -33,14 +33,15 @@ func (c Command) Happened() bool {
 	return c.Command.Happened()
 }
 
-func (c Command) Init() bool {
-	return c.Command.Happened()
+func (c Command) Init() error {
+	return nil
 }
 
 func NewCommands(parser *argparse.Parser) []ICommand {
 	res := make([]ICommand, 0)
 	res = append(res, NewLoginCommand(parser))
 	res = append(res, NewQueryCommand(parser))
+	res = append(res, NewDeleteCommand(parser))
 	return res
 }
 
@@ -209,13 +210,26 @@ func NewDeleteCommand(parser *argparse.Parser) *DeleteCommand {
 	cmd := &DeleteCommand{
 		Command: NewCommand(c),
 	}
+
+	cmd.Path = c.String("p", "path",
+		&argparse.Options{Required: false, Help: "文件地址"},
+	)
 	return cmd
 }
 
 type DeleteCommand struct {
 	*Command
+
+	Path *string
 }
 
 func (d DeleteCommand) Run() error {
+	path := *d.Path
+	if path != "" {
+		err = DeleteFile(path)
+		if err != nil {
+			panic(err)
+		}
+	}
 	return nil
 }
