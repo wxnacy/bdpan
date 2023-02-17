@@ -67,7 +67,7 @@ type Credential struct {
 
 func (c *Credential) GetAccessToken() (*AccessToken, error) {
 	if c.accessToken != nil {
-		fmt.Println("return from field")
+		// fmt.Println("return AccessToken from field")
 		return c.accessToken, nil
 	}
 	m, err := common.ReadFileToMap(tokenPath)
@@ -86,7 +86,7 @@ func (c *Credential) GetAccessToken() (*AccessToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("return from file")
+	// fmt.Println("return AccessToken from file")
 	c.accessToken = token
 	return token, nil
 }
@@ -102,4 +102,12 @@ func (t AccessToken) Print() {
 	fmt.Printf("AccessToken: %s\n", t.AccessToken)
 	fmt.Printf("RefreshToken: %s\n", t.RefreshToken)
 	fmt.Printf("RefreshTimestamp: %d\n", t.RefreshTimestamp)
+}
+
+type Config struct {
+	LoginAppId string `json:"login_app_id,omitempty"`
+}
+
+func NewConfig(loginAppId string) *Config {
+	return &Config{LoginAppId: loginAppId}
 }

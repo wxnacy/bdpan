@@ -47,29 +47,36 @@ func Login(arg LoginArg) {
 		}
 	}
 
-	// items, err := GetCredentails()
-	// if err != nil {
-	// panic(err)
-	// }
-	// for _, v := range items {
-	// fmt.Println(*v)
-	// }
+	config, err := GetConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	var c *Credential
 	if appId != "" {
+		config.LoginAppId = appId
 		c, err = GetCredentail(appId)
 	} else {
-		c, err = defaultCredentail()
+		c, err = GetConfigCredentail()
 	}
 	if err != nil {
 		panic(err)
 	}
-	t := &AccessToken{}
-	t.AccessToken = "1"
-	t.RefreshToken = "1"
-	saveAccessToken(c.AppId, *t)
-	fmt.Println(c)
-	fmt.Println(c.GetAccessToken())
-	fmt.Println(c.GetAccessToken())
-	fmt.Println(c.GetAccessToken())
+	err = CreateAccessTokenByDeviceCode()
+	if err != nil {
+		panic(err)
+	}
+	// kt := &AccessToken{}
+	// t.AccessToken = "1"
+	// t.RefreshToken = "1"
+	// saveAccessToken(c.AppId, *t)
+	token, err := c.GetAccessToken()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(*token)
+	// fmt.Println(c.GetAccessToken())
+	// fmt.Println(c.GetAccessToken())
+	// fmt.Println(c.GetAccessToken())
 
 }

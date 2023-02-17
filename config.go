@@ -10,11 +10,18 @@ import (
 	"time"
 )
 
+func init() {
+	_credentailMap = make(map[string]*Credential, 0)
+}
+
 var (
 	conifg_dir, _   = common.ExpandUser("~/.config/bdpan")
 	keyPath         = joinConfigPath("key")
 	credentialsPath = joinConfigPath("credentials")
 	tokenPath       = joinConfigPath("access_token")
+
+	_credentailMap map[string]*Credential
+	_config        *Config
 )
 
 func defaultCredentail() (*Credential, error) {
@@ -26,6 +33,31 @@ func defaultCredentail() (*Credential, error) {
 	return items[0], nil
 }
 
+func GetConfigCredentail() (*Credential, error) {
+	config, err := GetConfig()
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(config.LoginAppId)
+	return GetCredentail(config.LoginAppId)
+}
+
+func GetConfig() (*Config, error) {
+	if _config != nil {
+		fmt.Println("Get config from cache")
+		return _config, nil
+	}
+
+	c, err := defaultCredentail()
+	if err != nil {
+		return nil, err
+	}
+
+	_config = NewConfig(c.AppId)
+	fmt.Println("Get config from new")
+	return _config, nil
+}
+
 // func defaultAccessToken() (*AccessToken, error) {
 // items, err := GetCredentails()
 // if err != nil {
@@ -35,6 +67,10 @@ func defaultCredentail() (*Credential, error) {
 // }
 
 func initConfigDir() error {
+	return os.MkdirAll(conifg_dir, common.PermDir)
+}
+
+func initConfig() error {
 	return os.MkdirAll(conifg_dir, common.PermDir)
 }
 
@@ -65,12 +101,18 @@ func saveCredentail(credentials []_Credential, c Credential) error {
 }
 
 func GetCredentail(appId string) (*Credential, error) {
+	if c, ok := _credentailMap[appId]; ok {
+		fmt.Println("Get credentail from cache")
+		return c, nil
+	}
 	credentials, err := GetCredentails()
 	if err != nil {
 		return nil, err
 	}
 	for _, c := range credentials {
 		if c.AppId == appId {
+			_credentailMap[appId] = c
+			fmt.Println("Get credentail from file")
 			return c, nil
 		}
 	}

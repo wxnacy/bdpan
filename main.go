@@ -17,9 +17,11 @@ var (
 	err           error
 	testCommand   *argparse.Command
 	loginCommand  *argparse.Command
+	queryCommand  *argparse.Command
 	configCommand *argparse.Command
 
 	loginArg LoginArg
+	queryArg QueryArg
 )
 
 func initArgparse() {
@@ -53,6 +55,26 @@ type LoginArg struct {
 	// SecretKey *string
 	// SignKey   *string
 }
+
+type QueryArg struct {
+	AppId *string
+	Dir   *string
+	// AppKey    *string
+	// SecretKey *string
+	// SignKey   *string
+}
+
+// func initQueryArgparse(parser *argparse.Parser) {
+// loginCommand = parser.NewCommand("query", "查询网盘")
+// queryArg = QueryArg{}
+// queryArg.AppId = loginCommand.String("", "app-id",
+// &argparse.Options{Required: false, Help: "指定添加 App Id"},
+// )
+// queryArg. = loginCommand.String("", "app-id",
+// &argparse.Options{Required: false, Help: "指定添加 App Id"},
+// )
+
+// }
 
 func main() {
 	fmt.Println("main")
