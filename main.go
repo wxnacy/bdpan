@@ -12,8 +12,8 @@ var (
 )
 
 func main() {
-	fmt.Println("main")
-	parser := argparse.NewParser("bdpan", "网站服务")
+	// 注册命令工具
+	parser := argparse.NewParser("bdpan", "百度网盘命令行工具")
 	commands := NewCommands(parser)
 	err = parser.Parse(os.Args)
 	if err != nil {
