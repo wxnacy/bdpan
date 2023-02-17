@@ -23,6 +23,10 @@ func main() {
 
 	for _, cmd := range commands {
 		if cmd.Happened() {
+			err = cmd.Init()
+			if err != nil {
+				panic(err)
+			}
 			err = cmd.Run()
 			if err != nil {
 				panic(err)

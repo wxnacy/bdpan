@@ -10,6 +10,7 @@ import (
 
 type ICommand interface {
 	Happened() bool
+	Init() error
 	Run() error
 }
 
@@ -29,6 +30,10 @@ type Command struct {
 }
 
 func (c Command) Happened() bool {
+	return c.Command.Happened()
+}
+
+func (c Command) Init() bool {
 	return c.Command.Happened()
 }
 
@@ -112,11 +117,6 @@ func (q QueryCommand) Run() error {
 	return nil
 }
 
-// func test() {
-// var cmd ICommand
-// cmd = &QueryCommand{}
-// fmt.Println(cmd)
-// }
 // *********************************
 // LoginCommand
 // *********************************
@@ -198,5 +198,24 @@ func (l LoginCommand) Run() error {
 		panic(err)
 	}
 	fmt.Println(*token)
+	return nil
+}
+
+// *********************************
+// DeleteCommand
+// *********************************
+func NewDeleteCommand(parser *argparse.Parser) *DeleteCommand {
+	c := parser.NewCommand("del", "删除文件")
+	cmd := &DeleteCommand{
+		Command: NewCommand(c),
+	}
+	return cmd
+}
+
+type DeleteCommand struct {
+	*Command
+}
+
+func (d DeleteCommand) Run() error {
 	return nil
 }
