@@ -60,6 +60,8 @@ type LoginArg struct {
 type QueryArg struct {
 	AppId *string
 	Dir   *string
+	Name  *string
+	FSIDS *[]string
 	// AppKey    *string
 	// SecretKey *string
 	// SignKey   *string
@@ -74,6 +76,12 @@ func initQueryArgparse(parser *argparse.Parser) {
 	queryArg.Dir = queryCommand.String("", "dir",
 		&argparse.Options{Required: false, Help: "查询目录"},
 	)
+	queryArg.Name = queryCommand.String("n", "name",
+		&argparse.Options{Required: false, Help: "查询名称"},
+	)
+	queryArg.FSIDS = queryCommand.StringList("", "fsid",
+		&argparse.Options{Required: false, Help: "查询名称"},
+	)
 }
 
 func main() {
@@ -84,7 +92,6 @@ func main() {
 			fmt.Println("请先执行 bdpan login 进行登录")
 			return
 		}
-
 	}
 	if testCommand.Happened() {
 		fmt.Println("test")

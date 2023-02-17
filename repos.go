@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 func buildCredentail(arg LoginArg) Credential {
@@ -84,12 +85,44 @@ func Login(arg LoginArg) {
 func Query(arg QueryArg) {
 	fmt.Println("query")
 	dir := *arg.Dir
+	name := *arg.Name
+
+	if len(*arg.FSIDS) > 0 {
+		fmt.Println("query fsid")
+		fsids := make([]uint64, 0)
+		for _, fsid := range *arg.FSIDS {
+			id, err := strconv.Atoi(fsid)
+			if err != nil {
+				panic(err)
+			}
+			fsids = append(fsids, uint64(id))
+		}
+
+		files, err := GetFilesByFSIDS(fsids)
+		if err != nil {
+			panic(err)
+		}
+		printFileInfoList(files)
+		return
+	}
+
+	if name != "" {
+		fmt.Println("query name")
+		res, err := NewFileSearchRequest(name).Dir(*arg.Dir).Execute()
+		if err != nil {
+			panic(err)
+		}
+		printFileInfoList(res.List)
+		return
+	}
 	if dir != "" {
+		fmt.Println("query dir")
 		files, err := GetDirAllFiles(dir)
 		if err != nil {
 			panic(err)
 		}
 		printFileInfoList(files)
+		return
 	}
 
 }

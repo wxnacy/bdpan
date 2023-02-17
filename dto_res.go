@@ -60,7 +60,7 @@ type FileInfoDto struct {
 	FSID           uint64 `json:"fs_id"`
 	Path           string `json:"path"`
 	Size           int    `json:"size"`
-	FileName       string `json:"file_name"`
+	Filename       string `json:"filename"`
 	ServerFilename string `json:"server_filename"`
 	Category       int    `json:"category"`
 	Dlink          string `json:"dlink"`
@@ -75,7 +75,7 @@ func (f FileInfoDto) GetFilename() string {
 	if f.ServerFilename != "" {
 		return f.ServerFilename
 	}
-	return f.FileName
+	return f.Filename
 }
 
 func (f FileInfoDto) PrintOneLine() {
@@ -86,4 +86,5 @@ func printFileInfoList(files []*FileInfoDto) {
 	for _, f := range files {
 		f.PrintOneLine()
 	}
+	fmt.Printf("Total: %d", len(files))
 }

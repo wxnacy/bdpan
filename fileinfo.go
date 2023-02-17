@@ -48,8 +48,12 @@ func GetFileByFSID(fsid uint64) (*FileInfoDto, error) {
 }
 
 func fileInfo(req FileInfoRequest) (*FileListResponse, error) {
-	_, r, err := apiClient.MultimediafileApi.Xpanmultimediafilemetas(
-		context.Background()).AccessToken(_token.AccessToken).Dlink(
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	_, r, err := GetClient().MultimediafileApi.Xpanmultimediafilemetas(
+		context.Background()).AccessToken(token.AccessToken).Dlink(
 		req.GetDlink()).Fsids(req.GetFSID()).Execute()
 	if err != nil {
 		return nil, err
@@ -74,28 +78,32 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 	return NewFileListResponse(r)
 }
 
-func SearchFiles(dir, key string) ([]*FileInfoDto, error) {
-	res, err := NewFileSearchRequest(key).Execute()
-	if err != nil {
-		return nil, err
-	}
-	return res.List, nil
-}
+// func SearchFiles(dir, key string) ([]*FileInfoDto, error) {
+// res, err := NewFileSearchRequest(key).Execute()
+// if err != nil {
+// return nil, err
+// }
+// return res.List, nil
+// }
 
-func SearchFirstFile(dir, key string) (*FileInfoDto, error) {
-	res, err := NewFileSearchRequest(key).Dir(dir).Execute()
-	if err != nil {
-		return nil, err
-	}
-	if len(res.List) > 0 {
-		return res.List[0], nil
-	}
-	return nil, errors.New(fmt.Sprintf("%s 找不到", key))
-}
+// func SearchFirstFile(dir, key string) (*FileInfoDto, error) {
+// res, err := NewFileSearchRequest(key).Dir(dir).Execute()
+// if err != nil {
+// return nil, err
+// }
+// if len(res.List) > 0 {
+// return res.List[0], nil
+// }
+// return nil, errors.New(fmt.Sprintf("%s 找不到", key))
+// }
 
 func fileSearch(req FileSearchRequest) (*FileListResponse, error) {
-	_, r, err := apiClient.FileinfoApi.Xpanfilesearch(
-		context.Background()).AccessToken(_token.AccessToken).Dir(req.dir).Key(
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	_, r, err := GetClient().FileinfoApi.Xpanfilesearch(
+		context.Background()).AccessToken(token.AccessToken).Dir(req.dir).Key(
 		req.key).Execute()
 	if err != nil {
 		return nil, err
@@ -138,8 +146,12 @@ func DeleteFile(path string) error {
 }
 
 func fileDelete(req FileDeleteRequest) (*FileManagerResponse, error) {
-	r, err := apiClient.FilemanagerApi.Filemanagerdelete(
-		context.Background()).AccessToken(_token.AccessToken).Async(
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	r, err := GetClient().FilemanagerApi.Filemanagerdelete(
+		context.Background()).AccessToken(token.AccessToken).Async(
 		req.Async).Ondup(req.Ondup).Filelist(req.GetFilelistString()).Execute()
 	if err != nil {
 		return nil, err
