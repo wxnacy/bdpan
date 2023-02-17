@@ -12,6 +12,14 @@ import (
 
 func init() {
 	_credentailMap = make(map[string]*Credential, 0)
+	err = initConfigDir()
+	if err != nil {
+		panic(err)
+	}
+	err = initCryptoKey()
+	if err != nil {
+		panic(err)
+	}
 }
 
 var (

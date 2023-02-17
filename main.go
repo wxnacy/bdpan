@@ -7,9 +7,9 @@ import (
 	"github.com/akamensky/argparse"
 )
 
-func init() {
-	initAll()
-}
+// func init() {
+// initAll()
+// }
 
 var (
 	err error
