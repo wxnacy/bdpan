@@ -27,6 +27,7 @@ var (
 	keyPath         = joinConfigPath("key")
 	credentialsPath = joinConfigPath("credentials")
 	tokenPath       = joinConfigPath("access_token")
+	_configPath     = joinConfigPath("config.json")
 
 	_credentailMap map[string]*Credential
 	_config        *Config
@@ -63,6 +64,16 @@ func GetConfig() (*Config, error) {
 		return _config, nil
 	}
 
+	if common.FileExists(_configPath) {
+		config := &Config{}
+		err := common.ReadFileToInterface(_configPath, config)
+		if err != nil {
+			return nil, err
+		}
+		_config = config
+		return config, nil
+	}
+
 	c, err := defaultCredentail()
 	if err != nil {
 		return nil, err
@@ -77,9 +88,9 @@ func initConfigDir() error {
 	return os.MkdirAll(conifg_dir, common.PermDir)
 }
 
-func initConfig() error {
-	return os.MkdirAll(conifg_dir, common.PermDir)
-}
+// func initConfig() error {
+// return os.MkdirAll(conifg_dir, common.PermDir)
+// }
 
 func initCryptoKey() error {
 	info, err := os.Stat(keyPath)
