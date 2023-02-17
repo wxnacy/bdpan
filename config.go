@@ -38,8 +38,15 @@ func GetConfigCredentail() (*Credential, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(config.LoginAppId)
 	return GetCredentail(config.LoginAppId)
+}
+
+func GetConfigAccessToken() (*AccessToken, error) {
+	c, err := GetConfigCredentail()
+	if err != nil {
+		return nil, err
+	}
+	return c.GetAccessToken()
 }
 
 func GetConfig() (*Config, error) {

@@ -83,5 +83,13 @@ func Login(arg LoginArg) {
 
 func Query(arg QueryArg) {
 	fmt.Println("query")
+	dir := *arg.Dir
+	if dir != "" {
+		files, err := GetDirAllFiles(dir)
+		if err != nil {
+			panic(err)
+		}
+		printFileInfoList(files)
+	}
 
 }

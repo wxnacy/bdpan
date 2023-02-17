@@ -59,9 +59,13 @@ func fileInfo(req FileInfoRequest) (*FileListResponse, error) {
 
 func fileList(req FileListRequest) (*FileListResponse, error) {
 	dir := *req.dir
-	_, r, err := apiClient.FileinfoApi.Xpanfilelist(
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	_, r, err := GetClient().FileinfoApi.Xpanfilelist(
 		context.Background()).AccessToken(
-		_token.AccessToken).Dir(dir).Web(req.GetWeb()).Start(
+		token.AccessToken).Dir(dir).Web(req.GetWeb()).Start(
 		req.GetStart()).Limit(req.limit).Execute()
 	if err != nil {
 		return nil, err

@@ -81,3 +81,9 @@ func (f FileInfoDto) GetFilename() string {
 func (f FileInfoDto) PrintOneLine() {
 	fmt.Printf("%d\t%s\t%s\t%d\n", f.FSID, f.MD5, f.GetFilename(), f.Size)
 }
+
+func printFileInfoList(files []*FileInfoDto) {
+	for _, f := range files {
+		f.PrintOneLine()
+	}
+}
