@@ -1,7 +1,6 @@
 package main
 
 import (
-	sdk "bdpan/openapi"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,8 +13,8 @@ import (
 )
 
 var (
-	apiClient *sdk.APIClient
-	_token    AccessToken
+	// apiClient *sdk.APIClient
+	_token AccessToken
 )
 
 func convertErrorResponse(r *http.Response) *ErrorResponse {

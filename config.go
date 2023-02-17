@@ -12,6 +12,10 @@ import (
 
 func init() {
 	_credentailMap = make(map[string]*Credential, 0)
+	if !common.DirExists(TMP_DIR) {
+		os.Mkdir(TMP_DIR, common.PermDir)
+	}
+
 	err = initConfigDir()
 	if err != nil {
 		panic(err)
@@ -21,6 +25,11 @@ func init() {
 		panic(err)
 	}
 }
+
+const (
+	TMP_DIR            = "/tmp/bdpan"
+	DEFAULT_UPLOAD_DIR = "/apps/bdpan/"
+)
 
 var (
 	conifg_dir, _   = common.ExpandUser("~/.config/bdpan")
@@ -60,7 +69,7 @@ func GetConfigAccessToken() (*AccessToken, error) {
 
 func GetConfig() (*Config, error) {
 	if _config != nil {
-		fmt.Println("Get config from cache")
+		// fmt.Println("Get config from cache")
 		return _config, nil
 	}
 
@@ -80,7 +89,7 @@ func GetConfig() (*Config, error) {
 	}
 
 	_config = NewConfig(c.AppId)
-	fmt.Println("Get config from new")
+	// fmt.Println("Get config from new")
 	return _config, nil
 }
 
@@ -120,7 +129,7 @@ func saveCredentail(credentials []_Credential, c Credential) error {
 
 func GetCredentail(appId string) (*Credential, error) {
 	if c, ok := _credentailMap[appId]; ok {
-		fmt.Println("Get credentail from cache")
+		// fmt.Println("Get credentail from cache")
 		return c, nil
 	}
 	credentials, err := GetCredentails()
@@ -130,7 +139,7 @@ func GetCredentail(appId string) (*Credential, error) {
 	for _, c := range credentials {
 		if c.AppId == appId {
 			_credentailMap[appId] = c
-			fmt.Println("Get credentail from file")
+			// fmt.Println("Get credentail from file")
 			return c, nil
 		}
 	}

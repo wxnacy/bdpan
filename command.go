@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bdpan/common"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/akamensky/argparse"
 )
@@ -42,6 +45,7 @@ func NewCommands(parser *argparse.Parser) []ICommand {
 	res = append(res, NewLoginCommand(parser))
 	res = append(res, NewQueryCommand(parser))
 	res = append(res, NewDeleteCommand(parser))
+	res = append(res, NewUploadCommand(parser))
 	return res
 }
 
@@ -228,8 +232,60 @@ func (d DeleteCommand) Run() error {
 	if path != "" {
 		err = DeleteFile(path)
 		if err != nil {
-			panic(err)
+			return err
 		}
+	}
+	return nil
+}
+
+// *********************************
+// UploadCommand
+// *********************************
+func NewUploadCommand(parser *argparse.Parser) *UploadCommand {
+	c := parser.NewCommand("upload", "上传文件")
+	cmd := &UploadCommand{
+		Command: NewCommand(c),
+	}
+
+	cmd.From = c.String("f", "from",
+		&argparse.Options{Required: true, Help: "文件来源"},
+	)
+	cmd.To = c.String("t", "to",
+		&argparse.Options{
+			Required: false, Help: "保存地址", Default: DEFAULT_UPLOAD_DIR},
+	)
+	return cmd
+}
+
+type UploadCommand struct {
+	*Command
+
+	From *string
+	To   *string
+}
+
+func (u UploadCommand) Run() error {
+	from := *u.From
+	to := *u.To
+	if common.FileExists(from) {
+		if strings.HasSuffix(to, "/") {
+			to = filepath.Join(to, filepath.Base(from))
+		}
+		fmt.Printf("Upload %s to %s\n", from, to)
+		_, err = UploadFile(from, to)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("File: %s upload success\n", from)
+	}
+
+	if common.DirExists(from) {
+		res, err := UploadDir(from, to)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Success: %d\n", res.SuccessCount)
+		fmt.Printf("Failed: %d\n", res.FailedCount)
 	}
 	return nil
 }

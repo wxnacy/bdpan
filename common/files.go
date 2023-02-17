@@ -16,10 +16,11 @@ const (
 
 // 判断地址是否存在
 func FileExists(filepath string) bool {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+	info, err := os.Stat(filepath)
+	if os.IsNotExist(err) {
 		return false
 	}
-	return true
+	return !info.IsDir()
 }
 
 // 判断地址是否为目录

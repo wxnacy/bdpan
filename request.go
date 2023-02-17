@@ -69,7 +69,7 @@ func (r UploadDirRequest) ToPath(path string) UploadDirRequest {
 }
 
 func (r UploadDirRequest) Execute() (*UploadDirResponse, error) {
-	return UploadDir(r)
+	return uploadDir(r)
 }
 
 type FileListRequest struct {
