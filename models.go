@@ -1,13 +1,15 @@
 package main
 
 import (
+	"bdpan/common"
+	"errors"
 	"fmt"
 )
 
 type _Credential struct {
-	AppId       string `json:"app_id,omitempty"`
-	Credentail  string `json:"credentail,omitempty"`
-	AccessToken string `json:"access_token,omitempty"`
+	AppId      string `json:"app_id,omitempty"`
+	Credentail string `json:"credentail,omitempty"`
+	// AccessToken string `json:"access_token,omitempty"`
 }
 
 func newCredentail(c Credential) *_Credential {
@@ -36,30 +38,57 @@ func (c *_Credential) SetCredentail(cre Credential) error {
 	return nil
 }
 
-func (c _Credential) GetAccessToken() (*AccessToken, error) {
-	res := &AccessToken{}
-	err = decryptHexToInterface(c.AccessToken, res)
+// func (c _Credential) GetAccessToken() (*AccessToken, error) {
+// res := &AccessToken{}
+// err = decryptHexToInterface(c.AccessToken, res)
+// if err != nil {
+// return nil, err
+// }
+// return res, nil
+// }
+
+// func (c *_Credential) SetAccessToken(a AccessToken) error {
+
+// str, err := encryptInterfaceToHex(a)
+// if err != nil {
+// return err
+// }
+// c.AccessToken = str
+// return nil
+// }
+
+type Credential struct {
+	AppId       string `json:"app_id,omitempty"`
+	AppKey      string `json:"app_key,omitempty"`
+	SecretKey   string `json:"secret_key,omitempty"`
+	SignKey     string `json:"sign_key,omitempty"`
+	accessToken *AccessToken
+}
+
+func (c *Credential) GetAccessToken() (*AccessToken, error) {
+	if c.accessToken != nil {
+		fmt.Println("return from field")
+		return c.accessToken, nil
+	}
+	m, err := common.ReadFileToMap(tokenPath)
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
-}
 
-func (c *_Credential) SetAccessToken(a AccessToken) error {
-
-	str, err := encryptInterfaceToHex(a)
-	if err != nil {
-		return err
+	tokenStr, ok := m[c.AppId]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf(
+			"AppId: %s AccessToken not found", c.AppId))
 	}
-	c.AccessToken = str
-	return nil
-}
 
-type Credential struct {
-	AppId     string `json:"app_id,omitempty"`
-	AppKey    string `json:"app_key,omitempty"`
-	SecretKey string `json:"secret_key,omitempty"`
-	SignKey   string `json:"sign_key,omitempty"`
+	token := &AccessToken{}
+	err = decryptHexToInterface(tokenStr.(string), token)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("return from file")
+	c.accessToken = token
+	return token, nil
 }
 
 type AccessToken struct {

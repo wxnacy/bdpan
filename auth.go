@@ -152,19 +152,7 @@ func CreateAccessTokenByDeviceCode() {
 	// _token.RefreshToken = *tokenRes.RefreshToken
 	// _token.ExpiresIn = *tokenRes.ExpiresIn
 	HttpResponseToAccessToken(r, _token)
-	saveAccessToken(*_token)
-}
-
-func saveAccessToken(t AccessToken) {
-	tokenMap, err := common.ToMap(t)
-	if err != nil {
-		panic(err)
-	}
-	err = common.WriteMapToFile(TOKEN_PATH, tokenMap)
-	if err != nil {
-		panic(err)
-	}
-
+	// saveAccessToken(*_token)
 }
 
 func HttpResponseToAccessToken(r *http.Response, t *AccessToken) error {
@@ -207,7 +195,7 @@ func RefreshAccessToken() {
 		panic(err)
 	}
 	_token.Print()
-	saveAccessToken(*_token)
+	// saveAccessToken(*_token)
 	fmt.Println("access_token 刷新完成")
 }
 

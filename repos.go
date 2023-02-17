@@ -54,6 +54,22 @@ func Login(arg LoginArg) {
 	// for _, v := range items {
 	// fmt.Println(*v)
 	// }
-	fmt.Println(defaultCredentail())
+	var c *Credential
+	if appId != "" {
+		c, err = GetCredentail(appId)
+	} else {
+		c, err = defaultCredentail()
+	}
+	if err != nil {
+		panic(err)
+	}
+	t := &AccessToken{}
+	t.AccessToken = "1"
+	t.RefreshToken = "1"
+	saveAccessToken(c.AppId, *t)
+	fmt.Println(c)
+	fmt.Println(c.GetAccessToken())
+	fmt.Println(c.GetAccessToken())
+	fmt.Println(c.GetAccessToken())
 
 }

@@ -104,3 +104,21 @@ func AddCredentail(c Credential) error {
 	}
 	return saveCredentail(credentials, c)
 }
+
+func saveAccessToken(appId string, t AccessToken) error {
+	m, err := common.ReadFileToMap(tokenPath)
+	if err != nil {
+		m = make(map[string]interface{}, 0)
+	}
+	tokenStr, err := encryptInterfaceToHex(t)
+	if err != nil {
+		return err
+	}
+	m[appId] = tokenStr
+
+	err = common.WriteMapToFile(tokenPath, m)
+	if err != nil {
+		return err
+	}
+	return nil
+}
