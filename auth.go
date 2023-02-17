@@ -13,59 +13,10 @@ import (
 	"time"
 )
 
-func init() {
-	// buildConfig()
-	// buildApiClient()
-	// buildAccessToken()
-	// _config = config
-}
-
 var (
 	apiClient *sdk.APIClient
-	// config      AppConfig
-	// _config     AppConfig
-	_token      AccessToken
-	CONFIG_PATH string = joinConfigPath("baidupan.json")
-	TOKEN_PATH  string = joinConfigPath("baidupan_access_token.json")
+	_token    AccessToken
 )
-
-type AppConfig struct {
-	AppId     string `json:"app_id"`
-	AppKey    string `json:"app_key"`
-	SecretKey string `json:"secret_key"`
-	SignKey   string `json:"sign_key"`
-}
-
-// func buildConfig() {
-// m, err := common.ReadFileToMap(CONFIG_PATH)
-// if err != nil {
-// panic(err)
-// }
-
-// b, err := json.MarshalIndent(m, "", "")
-// if err != nil {
-// panic(err)
-// }
-// err = json.Unmarshal(b, &config)
-// if err != nil {
-// panic(err)
-// }
-// }
-
-// func buildAccessToken() {
-// if !common.FileExists(TOKEN_PATH) {
-// fmt.Fprintf(os.Stderr, "配置: %s 不存在\n", TOKEN_PATH)
-// return
-// }
-// if _token != nil {
-// return
-// }
-// _token = &AccessToken{}
-// err := common.ReadFileToInterface(TOKEN_PATH, _token)
-// if err != nil {
-// panic(err)
-// }
-// }
 
 func convertErrorResponse(r *http.Response) *ErrorResponse {
 	bodyBytes, err := ioutil.ReadAll(r.Body)
@@ -81,41 +32,6 @@ func convertErrorResponse(r *http.Response) *ErrorResponse {
 	res.r = r
 	return &res
 }
-
-// func getAccessTokenByDeviceCode(code string) (sdk.OauthTokenDeviceTokenResponse, *ErrorResponse) {
-// resp, r, err := apiClient.AuthApi.OauthTokenDeviceToken(
-// context.Background()).Code(
-// code).ClientId(
-// config.AppKey).ClientSecret(
-// config.SecretKey).Execute()
-// if err != nil {
-// return resp, convertErrorResponse(r)
-// }
-// return resp, nil
-// }
-
-// func openDeviceCodeQrCode(appId string) string {
-// scope := "basic,netdisk" // string
-// c, err := GetCredentail(appId)
-// if err != nil {
-// return err
-// }
-// resp, r, err := apiClient.AuthApi.OauthTokenDeviceCode(
-// context.Background()).ClientId(config.AppKey).Scope(scope).Execute()
-// if err != nil {
-// convertErrorResponse(r).Print()
-// panic(err)
-// }
-// code := *resp.DeviceCode
-// qrcode := *resp.QrcodeUrl
-// fmt.Printf("DeviceCode: %s\n", code)
-// cmd := exec.Command("open", qrcode)
-// err = cmd.Run()
-// if err != nil {
-// panic(err)
-// }
-// return code
-// }
 
 func CreateAccessTokenByDeviceCode() error {
 	fmt.Println("请求 device_code")
@@ -171,18 +87,6 @@ func CreateAccessTokenByDeviceCode() error {
 	saveAccessToken(credentail.AppId, token)
 	return err
 }
-
-// func HttpResponseToAccessToken(r *http.Response, t *AccessToken) error {
-// bodyBytes, err := ioutil.ReadAll(r.Body)
-// if err != nil {
-// return err
-// }
-// if err := json.Unmarshal(bodyBytes, t); err != nil {
-// return err
-// }
-// t.RefreshTimestamp = time.Now().Unix()
-// return nil
-// }
 
 func RefreshAccessToken() error {
 	fmt.Println("开始刷新 access_token")

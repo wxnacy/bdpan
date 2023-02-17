@@ -73,14 +73,6 @@ func GetConfig() (*Config, error) {
 	return _config, nil
 }
 
-// func defaultAccessToken() (*AccessToken, error) {
-// items, err := GetCredentails()
-// if err != nil {
-// return nil, err
-// }
-// return items[0]., nil
-// }
-
 func initConfigDir() error {
 	return os.MkdirAll(conifg_dir, common.PermDir)
 }

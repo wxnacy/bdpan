@@ -49,13 +49,6 @@ func NewResponse(resp interface{}, r *http.Response, err error) (*Response, erro
 	}, nil
 }
 
-// type FileListDto struct {
-// Errno    int32          `json:"errno"`
-// GuidInfo string         `json:"guid_info"`
-// Errmsg   string         `json:"errmsg"`
-// List     []*FileInfoDto `json:"list"`
-// }
-
 type FileInfoDto struct {
 	FSID           uint64 `json:"fs_id"`
 	Path           string `json:"path"`

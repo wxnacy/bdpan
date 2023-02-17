@@ -7,10 +7,6 @@ import (
 	"github.com/akamensky/argparse"
 )
 
-// func init() {
-// initAll()
-// }
-
 var (
 	err error
 )

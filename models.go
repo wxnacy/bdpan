@@ -9,7 +9,6 @@ import (
 type _Credential struct {
 	AppId      string `json:"app_id,omitempty"`
 	Credentail string `json:"credentail,omitempty"`
-	// AccessToken string `json:"access_token,omitempty"`
 }
 
 func newCredentail(c Credential) *_Credential {
@@ -37,25 +36,6 @@ func (c *_Credential) SetCredentail(cre Credential) error {
 	c.Credentail = str
 	return nil
 }
-
-// func (c _Credential) GetAccessToken() (*AccessToken, error) {
-// res := &AccessToken{}
-// err = decryptHexToInterface(c.AccessToken, res)
-// if err != nil {
-// return nil, err
-// }
-// return res, nil
-// }
-
-// func (c *_Credential) SetAccessToken(a AccessToken) error {
-
-// str, err := encryptInterfaceToHex(a)
-// if err != nil {
-// return err
-// }
-// c.AccessToken = str
-// return nil
-// }
 
 type Credential struct {
 	AppId       string `json:"app_id,omitempty"`

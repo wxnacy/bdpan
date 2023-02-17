@@ -200,9 +200,3 @@ func (l LoginCommand) Run() error {
 	fmt.Println(*token)
 	return nil
 }
-
-// func test() {
-// var cmd ICommand
-// cmd = &QueryCommand{}
-// fmt.Println(cmd)
-// }
