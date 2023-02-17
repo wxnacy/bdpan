@@ -18,7 +18,7 @@ import (
 type Fileprecreateresponse struct {
 	Uploadid *string `json:"uploadid,omitempty"`
 	ReturnType *int32 `json:"return_type,omitempty"`
-	BlockList *[]string `json:"block_list,omitempty"`
+	BlockList *[]int `json:"block_list,omitempty"`
 	Errno *int32 `json:"errno,omitempty"`
 	RequestId *int64 `json:"request_id,omitempty"`
 }
@@ -105,9 +105,9 @@ func (o *Fileprecreateresponse) SetReturnType(v int32) {
 }
 
 // GetBlockList returns the BlockList field value if set, zero value otherwise.
-func (o *Fileprecreateresponse) GetBlockList() []string {
+func (o *Fileprecreateresponse) GetBlockList() []int {
 	if o == nil || o.BlockList == nil {
-		var ret []string
+		var ret []int
 		return ret
 	}
 	return *o.BlockList
@@ -115,7 +115,7 @@ func (o *Fileprecreateresponse) GetBlockList() []string {
 
 // GetBlockListOk returns a tuple with the BlockList field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Fileprecreateresponse) GetBlockListOk() (*[]string, bool) {
+func (o *Fileprecreateresponse) GetBlockListOk() (*[]int, bool) {
 	if o == nil || o.BlockList == nil {
 		return nil, false
 	}
@@ -132,7 +132,7 @@ func (o *Fileprecreateresponse) HasBlockList() bool {
 }
 
 // SetBlockList gets a reference to the given []string and assigns it to the BlockList field.
-func (o *Fileprecreateresponse) SetBlockList(v []string) {
+func (o *Fileprecreateresponse) SetBlockList(v []int) {
 	o.BlockList = &v
 }
 
@@ -255,5 +255,6 @@ func (v *NullableFileprecreateresponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
+
 
 
