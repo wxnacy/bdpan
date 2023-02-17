@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	fmt.Println("init")
+	fmt.Println("main init")
 	initArgparse()
 	initAll()
 }
@@ -30,6 +30,7 @@ func initArgparse() {
 	configCommand = parser.NewCommand("config", "修改和获取配置")
 	testCommand = parser.NewCommand("test", "测试程序")
 	initLoginArgparse(parser)
+	initQueryArgparse(parser)
 	// // Parse input
 	err = parser.Parse(os.Args)
 	if err != nil {
@@ -64,17 +65,16 @@ type QueryArg struct {
 	// SignKey   *string
 }
 
-// func initQueryArgparse(parser *argparse.Parser) {
-// loginCommand = parser.NewCommand("query", "查询网盘")
-// queryArg = QueryArg{}
-// queryArg.AppId = loginCommand.String("", "app-id",
-// &argparse.Options{Required: false, Help: "指定添加 App Id"},
-// )
-// queryArg. = loginCommand.String("", "app-id",
-// &argparse.Options{Required: false, Help: "指定添加 App Id"},
-// )
-
-// }
+func initQueryArgparse(parser *argparse.Parser) {
+	queryCommand = parser.NewCommand("query", "查询网盘")
+	queryArg = QueryArg{}
+	queryArg.AppId = queryCommand.String("", "app-id",
+		&argparse.Options{Required: false, Help: "指定添加 App Id"},
+	)
+	queryArg.Dir = queryCommand.String("", "dir",
+		&argparse.Options{Required: false, Help: "查询目录"},
+	)
+}
 
 func main() {
 	fmt.Println("main")
@@ -90,6 +90,8 @@ func main() {
 		fmt.Println("test")
 	} else if loginCommand.Happened() {
 		Login(loginArg)
+	} else if queryCommand.Happened() {
+		Query(queryArg)
 	} else {
 		fmt.Println("no command")
 	}

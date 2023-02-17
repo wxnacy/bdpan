@@ -62,10 +62,10 @@ func Login(arg LoginArg) {
 	if err != nil {
 		panic(err)
 	}
-	err = CreateAccessTokenByDeviceCode()
-	if err != nil {
-		panic(err)
-	}
+	// err = CreateAccessTokenByDeviceCode()
+	// if err != nil {
+	// panic(err)
+	// }
 	// kt := &AccessToken{}
 	// t.AccessToken = "1"
 	// t.RefreshToken = "1"
@@ -78,5 +78,10 @@ func Login(arg LoginArg) {
 	// fmt.Println(c.GetAccessToken())
 	// fmt.Println(c.GetAccessToken())
 	// fmt.Println(c.GetAccessToken())
+
+}
+
+func Query(arg QueryArg) {
+	fmt.Println("query")
 
 }
