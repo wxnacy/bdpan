@@ -46,6 +46,7 @@ func NewCommands(parser *argparse.Parser) []ICommand {
 	res = append(res, NewQueryCommand(parser))
 	res = append(res, NewDeleteCommand(parser))
 	res = append(res, NewUploadCommand(parser))
+	res = append(res, NewDownloadCommand(parser))
 	res = append(res, NewTestCommand(parser))
 	return res
 }
@@ -336,5 +337,67 @@ type TestCommand struct {
 
 func (t TestCommand) Run() error {
 	fmt.Println(float64(17599702237186) / (1 << 30))
+	return nil
+}
+
+// *********************************
+// DownloadCommand
+// *********************************
+func NewDownloadCommand(parser *argparse.Parser) *DownloadCommand {
+	c := parser.NewCommand("download", "下载文件")
+	cmd := &DownloadCommand{
+		Command: NewCommand(c),
+	}
+
+	cmd.From = c.String("f", "from",
+		&argparse.Options{Required: true, Help: "网盘文件"},
+	)
+	downloadDir, _ := common.ExpandUser("~/Downloads")
+	cmd.To = c.String("t", "to",
+		&argparse.Options{
+			Required: false, Help: "下载位置", Default: downloadDir},
+	)
+	cmd.IsSync = c.Flag("", "sync",
+		&argparse.Options{
+			Required: false, Help: "是否同步进程"},
+	)
+	return cmd
+}
+
+type DownloadCommand struct {
+	*Command
+
+	From   *string
+	To     *string
+	IsSync *bool
+}
+
+func (d DownloadCommand) Run() error {
+	from := *d.From
+	to := *d.To
+	path := filepath.Join(to, filepath.Base(from))
+	if common.FileExists(path) {
+		fmt.Fprintf(os.Stderr, "下载失败 %s 已存在\n", path)
+		return err
+	}
+	file, err := GetFileByPath(from)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "下载失败 %s\n", err.Error())
+		return err
+	}
+	// TODO: 判定 to 的类型
+	bytes, err := GetFileBytes(file.FSID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "下载失败 %s\n", err.Error())
+		return err
+	}
+
+	err = os.WriteFile(path, bytes, common.PermFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "下载失败 %s\n", err.Error())
+		return err
+	}
+	fmt.Printf("%s 下载成功\n", path)
+
 	return nil
 }

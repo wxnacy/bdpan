@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 )
 
 func GetDirAllFiles(dir string) ([]*FileInfoDto, error) {
@@ -97,6 +98,18 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 // return nil, errors.New(fmt.Sprintf("%s 找不到", key))
 // }
 
+func GetFileByPath(path string) (*FileInfoDto, error) {
+	dir, name := filepath.Split(path)
+	res, err := NewFileSearchRequest(name).Dir(dir).Execute()
+	if err != nil {
+		return nil, err
+	}
+	if len(res.List) > 0 {
+		return res.List[0], nil
+	}
+	return nil, errors.New(fmt.Sprintf("%s 找不到", path))
+}
+
 func fileSearch(req FileSearchRequest) (*FileListResponse, error) {
 	token, err := GetConfigAccessToken()
 	if err != nil {
@@ -117,7 +130,11 @@ func GetFileBytes(fsid uint64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	uri := fileDto.GetLink()
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	uri := fmt.Sprintf("%s&access_token=%s", fileDto.Dlink, token.AccessToken)
 	headers := map[string]string{
 		"User-Agent": "pan.baidu.com",
 	}
