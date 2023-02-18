@@ -60,10 +60,6 @@ type FileInfoDto struct {
 	MD5            string `json:"md5"`
 }
 
-func (f FileInfoDto) GetLink() string {
-	return f.Dlink + "&access_token=" + _token.AccessToken
-}
-
 func (f FileInfoDto) GetFilename() string {
 	if f.ServerFilename != "" {
 		return f.ServerFilename

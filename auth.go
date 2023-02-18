@@ -13,11 +13,6 @@ import (
 	"time"
 )
 
-var (
-	// apiClient *sdk.APIClient
-	_token AccessToken
-)
-
 func convertErrorResponse(r *http.Response) *ErrorResponse {
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
