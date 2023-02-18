@@ -111,7 +111,6 @@ func (q QueryCommand) Run() error {
 		return nil
 	}
 	if dir != "" {
-		fmt.Println("query dir")
 		files, err := GetDirAllFiles(dir)
 		if err != nil {
 			panic(err)
@@ -254,14 +253,19 @@ func NewUploadCommand(parser *argparse.Parser) *UploadCommand {
 		&argparse.Options{
 			Required: false, Help: "保存地址", Default: DEFAULT_UPLOAD_DIR},
 	)
+	cmd.IsSync = c.Flag("", "sync",
+		&argparse.Options{
+			Required: false, Help: "是否同步上传"},
+	)
 	return cmd
 }
 
 type UploadCommand struct {
 	*Command
 
-	From *string
-	To   *string
+	From   *string
+	To     *string
+	IsSync *bool
 }
 
 func (u UploadCommand) Run() error {
@@ -280,12 +284,17 @@ func (u UploadCommand) Run() error {
 	}
 
 	if common.DirExists(from) {
-		res, err := UploadDir(from, to)
-		if err != nil {
-			return err
+		if *u.IsSync {
+
+			res, err := UploadDir(from, to)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Success: %d\n", res.SuccessCount)
+			fmt.Printf("Failed: %d\n", res.FailedCount)
+		} else {
+			TaskUploadDir(from, to)
 		}
-		fmt.Printf("Success: %d\n", res.SuccessCount)
-		fmt.Printf("Failed: %d\n", res.FailedCount)
 	}
 	return nil
 }

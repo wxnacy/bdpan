@@ -79,5 +79,5 @@ func printFileInfoList(files []*FileInfoDto) {
 	for _, f := range files {
 		f.PrintOneLine()
 	}
-	fmt.Printf("Total: %d", len(files))
+	fmt.Printf("Total: %d\n", len(files))
 }
