@@ -18,7 +18,7 @@ import (
 type Uinforesponse struct {
 	Errno *int32 `json:"errno,omitempty"`
 	Errmsg *string `json:"errmsg,omitempty"`
-	Uk *int32 `json:"uk,omitempty"`
+	Uk *int `json:"uk,omitempty"`
 	RequestId *string `json:"request_id,omitempty"`
 	AvatarUrl *string `json:"avatar_url,omitempty"`
 	BaiduName *string `json:"baidu_name,omitempty"`
@@ -108,9 +108,9 @@ func (o *Uinforesponse) SetErrmsg(v string) {
 }
 
 // GetUk returns the Uk field value if set, zero value otherwise.
-func (o *Uinforesponse) GetUk() int32 {
+func (o *Uinforesponse) GetUk() int {
 	if o == nil || o.Uk == nil {
-		var ret int32
+		var ret int
 		return ret
 	}
 	return *o.Uk
@@ -118,7 +118,7 @@ func (o *Uinforesponse) GetUk() int32 {
 
 // GetUkOk returns a tuple with the Uk field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Uinforesponse) GetUkOk() (*int32, bool) {
+func (o *Uinforesponse) GetUkOk() (*int, bool) {
 	if o == nil || o.Uk == nil {
 		return nil, false
 	}
@@ -135,7 +135,7 @@ func (o *Uinforesponse) HasUk() bool {
 }
 
 // SetUk gets a reference to the given int32 and assigns it to the Uk field.
-func (o *Uinforesponse) SetUk(v int32) {
+func (o *Uinforesponse) SetUk(v int) {
 	o.Uk = &v
 }
 
