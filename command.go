@@ -46,6 +46,7 @@ func NewCommands(parser *argparse.Parser) []ICommand {
 	res = append(res, NewQueryCommand(parser))
 	res = append(res, NewDeleteCommand(parser))
 	res = append(res, NewUploadCommand(parser))
+	res = append(res, NewTestCommand(parser))
 	return res
 }
 
@@ -157,6 +158,18 @@ func (l LoginCommand) buildCredentail() Credential {
 	return credential
 }
 
+func (l LoginCommand) getVipName(vipType int32) string {
+	switch vipType {
+	case 0:
+		return "普通用户"
+	case 1:
+		return "普通会员"
+	case 2:
+		return "超级会员"
+	}
+	return "未知身份"
+}
+
 func (l LoginCommand) Run() error {
 	appId := *l.AppId
 	// var cres []*Credential
@@ -164,44 +177,51 @@ func (l LoginCommand) Run() error {
 		_, err = GetCredentails()
 	} else {
 		_, err = GetCredentail(appId)
-
 	}
+	// 当查询不到用户时进行添加流程
 	if err != nil {
 		credential := l.buildCredentail()
 		err := AddCredentail(credential)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "登录失败 %s\n", err.Error())
+			return err
+		}
+		// 获取授权
+		err = CreateAccessTokenByDeviceCode()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "登录失败 %s\n", err.Error())
+			return err
 		}
 	}
 
-	config, err := GetConfig()
-	if err != nil {
-		panic(err)
+	if appId != "" {
+
+		// 设置当前需要使用的 appId
+		config, err := GetConfig()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "登录失败 %s\n", err.Error())
+			return err
+		}
+		config.LoginAppId = appId
 	}
 
-	var c *Credential
-	if appId != "" {
-		config.LoginAppId = appId
-		c, err = GetCredentail(appId)
-	} else {
-		c, err = GetConfigCredentail()
-	}
+	user, err := userInfo()
+	// 获取用户信息失败，可能是授权过期则需要进行授权操作
 	if err != nil {
-		panic(err)
+		err = CreateAccessTokenByDeviceCode()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "获取用户信息失败 %s\n", err.Error())
+			return err
+		}
 	}
-	// err = CreateAccessTokenByDeviceCode()
-	// if err != nil {
-	// panic(err)
-	// }
-	// kt := &AccessToken{}
-	// t.AccessToken = "1"
-	// t.RefreshToken = "1"
-	// saveAccessToken(c.AppId, *t)
-	token, err := c.GetAccessToken()
+	fmt.Printf("Hello, %s(%s)\n", user.GetNetdiskName(), l.getVipName(user.GetVipType()))
+	pan, err := panInfo()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "获取网盘信息失败 %s\n", err.Error())
+		return err
 	}
-	fmt.Println(*token)
+	fmt.Printf("网盘容量 %s/%s\n", formatSize(pan.GetUsed()), formatSize(pan.GetTotal()))
+	// fmt.Printf("网盘总容量 %d", pan.GetTotal())
 	return nil
 }
 
@@ -296,5 +316,25 @@ func (u UploadCommand) Run() error {
 			TaskUploadDir(from, to)
 		}
 	}
+	return nil
+}
+
+// *********************************
+// TestCommand
+// *********************************
+func NewTestCommand(parser *argparse.Parser) *TestCommand {
+	c := parser.NewCommand("test", "测试程序")
+	cmd := &TestCommand{
+		Command: NewCommand(c),
+	}
+	return cmd
+}
+
+type TestCommand struct {
+	*Command
+}
+
+func (t TestCommand) Run() error {
+	fmt.Println(float64(17599702237186) / (1 << 30))
 	return nil
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bdpan/openapi"
 	"context"
 	"encoding/json"
 	"errors"
@@ -144,4 +145,30 @@ func ScheRefreshAccessToken() error {
 	}
 
 	return RefreshAccessToken()
+}
+
+func userInfo() (*openapi.Uinforesponse, error) {
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	resp, _, err := GetClient().UserinfoApi.Xpannasuinfo(context.Background()).AccessToken(
+		token.AccessToken).Execute()
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func panInfo() (*openapi.Quotaresponse, error) {
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	resp, _, err := GetClient().UserinfoApi.Apiquota(context.Background()).AccessToken(
+		token.AccessToken).Checkexpire(1).Checkfree(1).Execute()
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
 }
