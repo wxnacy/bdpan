@@ -72,6 +72,10 @@ func (r UploadDirRequest) Execute() (*UploadDirResponse, error) {
 	return uploadDir(r)
 }
 
+// ****************************************
+// FileListRequest
+// ****************************************
+
 type FileListRequest struct {
 	dir   *string
 	web   int
@@ -113,6 +117,74 @@ func (r FileListRequest) GetStart() string {
 func (r FileListRequest) Execute() (*FileListResponse, error) {
 	return fileList(r)
 }
+
+// ****************************************
+// FileListAllRequest
+// ****************************************
+
+type FileListAllRequest struct {
+	path string
+	web  int
+	// page  int
+	start     int32
+	limit     int32
+	recursion int32
+	desc      int32
+	order     string
+}
+
+func NewFileListAllRequest(path string) FileListAllRequest {
+	return FileListAllRequest{
+		web: 1, start: 0, limit: 1000, path: path,
+	}
+}
+
+func (f FileListAllRequest) Path(path string) FileListAllRequest {
+	f.path = path
+	return f
+}
+
+func (r FileListAllRequest) Web(web int) FileListAllRequest {
+	r.web = web
+	return r
+}
+
+func (f FileListAllRequest) Recursion(r int32) FileListAllRequest {
+	f.recursion = r
+	return f
+}
+
+func (f FileListAllRequest) Desc(r int32) FileListAllRequest {
+	f.desc = r
+	return f
+}
+
+func (f FileListAllRequest) Limit(r int32) FileListAllRequest {
+	f.limit = r
+	return f
+}
+
+func (f FileListAllRequest) Start(r int32) FileListAllRequest {
+	f.start = r
+	return f
+}
+
+func (f FileListAllRequest) Order(order string) FileListAllRequest {
+	f.order = order
+	return f
+}
+
+func (r FileListAllRequest) GetWeb() string {
+	return fmt.Sprintf("%d", r.web)
+}
+
+func (r FileListAllRequest) Execute() (*FileListAllResponse, error) {
+	return fileListAll(r)
+}
+
+// ****************************************
+// FileInfoRequest
+// ****************************************
 
 type FileInfoRequest struct {
 	dlink int

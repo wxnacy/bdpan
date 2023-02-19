@@ -181,3 +181,25 @@ func fileDelete(req FileDeleteRequest) (*FileManagerResponse, error) {
 	}
 	return res, nil
 }
+
+func fileListAll(req FileListAllRequest) (*FileListAllResponse, error) {
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	_, r, err := GetClient().MultimediafileApi.Xpanfilelistall(
+		context.Background()).AccessToken(
+		token.AccessToken).Path(req.path).Web(req.GetWeb()).Start(
+		req.start).Limit(req.limit).Order(req.order).Recursion(
+		req.recursion).Desc(req.desc).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &FileListAllResponse{}
+	err = httpResponseToInterface(r, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}

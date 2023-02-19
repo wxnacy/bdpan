@@ -2,6 +2,7 @@ package main
 
 import (
 	"bdpan/common"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/akamensky/argparse"
+	"github.com/wxnacy/gotool/arrays"
 )
 
 type ICommand interface {
@@ -47,6 +49,7 @@ func NewCommands(parser *argparse.Parser) []ICommand {
 	res = append(res, NewDeleteCommand(parser))
 	res = append(res, NewUploadCommand(parser))
 	res = append(res, NewDownloadCommand(parser))
+	res = append(res, NewListCommand(parser))
 	res = append(res, NewTestCommand(parser))
 	return res
 }
@@ -119,6 +122,90 @@ func (q QueryCommand) Run() error {
 		}
 		printFileInfoList(files)
 		return nil
+	}
+	return nil
+}
+
+// *********************************
+// ListCommand
+// *********************************
+func NewListCommand(parser *argparse.Parser) *ListCommand {
+	c := parser.NewCommand("list", "列出文件")
+	cmd := &ListCommand{
+		Command: NewCommand(c),
+	}
+	cmd.Dir = c.String("", "dir",
+		&argparse.Options{Required: true, Help: "查询目录"},
+	)
+	cmd.IsRecursion = c.Flag("r", "recursion",
+		&argparse.Options{Required: false, Help: "是否遍历子目录，默认否"},
+	)
+	cmd.IsDesc = c.Flag("d", "desc",
+		&argparse.Options{Required: false, Help: "是否为导出，默认否"},
+	)
+	cmd.Limit = c.Int("l", "limit",
+		&argparse.Options{Required: false, Help: "单页文件个数，默认 10", Default: 10},
+	)
+	cmd.Start = c.Int("s", "start",
+		&argparse.Options{Required: false, Help: "查询起点，默认为0"},
+	)
+	cmd.Order = c.String("o", "order",
+		&argparse.Options{
+			Required: false, Help: "排序字段:time(修改时间)，name(文件名)，size(大小，目录无大小)，默认为文件类型",
+			Validate: func(args []string) error {
+				for _, arg := range args {
+					if !arrays.StringContains(ORDERS, arg) {
+						return errors.New(fmt.Sprintf("%s not in %v", arg, ORDERS))
+					}
+				}
+				return nil
+			},
+		},
+	)
+	return cmd
+}
+
+const (
+	ORDER_TIME = "time"
+	ORDER_NAME = "name"
+	ORDER_SIZE = "size"
+)
+
+var (
+	ORDERS = []string{ORDER_NAME, ORDER_TIME, ORDER_SIZE}
+)
+
+type ListCommand struct {
+	*Command
+
+	Dir         *string
+	IsRecursion *bool
+	IsDesc      *bool
+	Start       *int
+	Limit       *int
+	Order       *string
+}
+
+func (l ListCommand) Run() error {
+	dir := *l.Dir
+	var recursion int32
+	if *l.IsRecursion {
+		recursion = 1
+	}
+	var desc int32
+	if *l.IsDesc {
+		desc = 1
+	}
+	res, err := NewFileListAllRequest(dir).Recursion(recursion).Limit(
+		int32(*l.Limit)).Order(*l.Order).Desc(desc).Start(int32(*l.Start)).Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "查询失败 %s", err.Error())
+		return err
+	}
+	printFileInfoList(res.List)
+	if res.HasMore == 1 {
+		fmt.Printf("下一页查询命令 %d\n", res.Cursor)
+
 	}
 	return nil
 }

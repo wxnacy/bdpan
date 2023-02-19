@@ -31,6 +31,14 @@ func NewFileListResponse(r *http.Response) (*FileListResponse, error) {
 	return dto, nil
 }
 
+type FileListAllResponse struct {
+	Errno   int32          `json:"errno"`
+	Errmsg  string         `json:"errmsg"`
+	HasMore int            `json:"has_more"`
+	Cursor  int            `json:"cursor"`
+	List    []*FileInfoDto `json:"list"`
+}
+
 type UploadFileResponse struct {
 	FileInfoDto
 	Errno int32 `json:"errno"`
