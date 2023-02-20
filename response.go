@@ -7,21 +7,36 @@ import (
 	"net/http"
 )
 
+type Response struct {
+	Errno int32 `json:"errno"`
+}
+
+func (r Response) IsError() bool {
+	return r.Errno == 0
+}
+
+func (r Response) Error() string {
+	if r.Errno == 31034 {
+		return "接口请求过于频繁，注意控制"
+	}
+	return fmt.Sprintf("未知错误: %d", r.Errno)
+}
+
 type UploadDirResponse struct {
 	SuccessCount int
 	FailedCount  int
 }
 
 type FileListResponse struct {
-	Errno    int32          `json:"errno"`
+	Response
 	GuidInfo string         `json:"guid_info"`
 	Errmsg   string         `json:"errmsg"`
 	List     []*FileInfoDto `json:"list"`
 }
 
 func (f FileListResponse) Print() {
-	if f.Errno == 31034 {
-		fmt.Println("接口请求过于频繁，注意控制。")
+	if f.IsError() {
+		fmt.Println(f.Error())
 		return
 	}
 	printFileInfoList(f.List)
