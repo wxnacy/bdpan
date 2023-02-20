@@ -225,8 +225,9 @@ func (r FileInfoRequest) Execute() (*FileListResponse, error) {
 // ****************************************
 
 type FileSearchRequest struct {
-	dir string
-	key string
+	dir       string
+	key       string
+	recursion int
 }
 
 func NewFileSearchRequest(key string) FileSearchRequest {
@@ -238,6 +239,15 @@ func NewFileSearchRequest(key string) FileSearchRequest {
 func (r FileSearchRequest) Dir(dir string) FileSearchRequest {
 	r.dir = dir
 	return r
+}
+
+func (f FileSearchRequest) Recursion(r int) FileSearchRequest {
+	f.recursion = r
+	return f
+}
+
+func (f FileSearchRequest) GetRecursion() string {
+	return strconv.Itoa(f.recursion)
 }
 
 func (r FileSearchRequest) Execute() (*FileListResponse, error) {

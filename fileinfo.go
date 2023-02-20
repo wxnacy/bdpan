@@ -116,8 +116,8 @@ func fileSearch(req FileSearchRequest) (*FileListResponse, error) {
 		return nil, err
 	}
 	_, r, err := GetClient().FileinfoApi.Xpanfilesearch(
-		context.Background()).AccessToken(token.AccessToken).Dir(req.dir).Key(
-		req.key).Execute()
+		context.Background()).AccessToken(token.AccessToken).Key(
+		req.key).Recursion(req.GetRecursion()).Execute()
 	if err != nil {
 		return nil, err
 	}

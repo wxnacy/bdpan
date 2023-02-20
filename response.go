@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -16,6 +17,14 @@ type FileListResponse struct {
 	GuidInfo string         `json:"guid_info"`
 	Errmsg   string         `json:"errmsg"`
 	List     []*FileInfoDto `json:"list"`
+}
+
+func (f FileListResponse) Print() {
+	if f.Errno == 31034 {
+		fmt.Println("接口请求过于频繁，注意控制。")
+		return
+	}
+	printFileInfoList(f.List)
 }
 
 func NewFileListResponse(r *http.Response) (*FileListResponse, error) {

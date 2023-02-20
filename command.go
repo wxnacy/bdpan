@@ -107,12 +107,11 @@ func (q QueryCommand) Run() error {
 	}
 
 	if name != "" {
-		fmt.Println("query name")
-		res, err := NewFileSearchRequest(name).Dir(dir).Execute()
+		res, err := NewFileSearchRequest(name).Dir(dir).Recursion(1).Execute()
 		if err != nil {
 			panic(err)
 		}
-		printFileInfoList(res.List)
+		res.Print()
 		return nil
 	}
 	if dir != "" {
