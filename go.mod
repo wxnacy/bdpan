@@ -15,6 +15,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/wxnacy/dler/godler v0.0.0-20220628155837-174ad32c97a6 // indirect
-	github.com/wxnacy/gotool v0.0.0-20220930125340-227d467a84be // indirect
+	github.com/wxnacy/gotool v0.0.0-20230221154535-07ea529aa73b // indirect
 	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
 )
