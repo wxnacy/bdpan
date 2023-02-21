@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	"github.com/wxnacy/gotool"
 )
 
 type ErrorResponse struct {
@@ -38,7 +40,7 @@ func (f FileInfoDto) GetFilename() string {
 
 func (f FileInfoDto) PrintOneLine() {
 	// fmt.Printf("%d\t%s\t%s\t%d\n", f.FSID, f.MD5, f.GetFilename(), f.Size)
-	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), formatSize(int64(f.Size)))
+	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), gotool.FormatSize(int64(f.Size)))
 }
 
 func printFileInfoList(files []*FileInfoDto) {

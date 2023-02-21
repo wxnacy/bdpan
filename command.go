@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/akamensky/argparse"
+	"github.com/wxnacy/gotool"
 	"github.com/wxnacy/gotool/arrays"
 )
 
@@ -307,7 +308,7 @@ func (l LoginCommand) Run() error {
 		fmt.Fprintf(os.Stderr, "获取网盘信息失败 %s\n", err.Error())
 		return err
 	}
-	fmt.Printf("网盘容量 %s/%s\n", formatSize(pan.GetUsed()), formatSize(pan.GetTotal()))
+	fmt.Printf("网盘容量 %s/%s\n", gotool.FormatSize(pan.GetUsed()), gotool.FormatSize(pan.GetTotal()))
 	// fmt.Printf("网盘总容量 %d", pan.GetTotal())
 	return nil
 }

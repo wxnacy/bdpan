@@ -4,7 +4,6 @@ import (
 	"bdpan/common"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -117,10 +116,4 @@ func SplitFile(path, tmpdir string, fragmentSize int64) ([]string, error) {
 		return []string{path}, nil
 	}
 	return paths, nil
-}
-
-func formatSize(size int64) string {
-	// return strconv.Itoa(int(size / (1 << 30)))
-	sizeFloat := float64(size) / (1 << 30)
-	return fmt.Sprintf("%.1fG", sizeFloat)
 }
