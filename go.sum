@@ -28,6 +28,8 @@ github.com/wxnacy/gotool v0.0.0-20220930125340-227d467a84be h1:TL+gQiVv5H9F3slij
 github.com/wxnacy/gotool v0.0.0-20220930125340-227d467a84be/go.mod h1:yHj/jvel69XkKNsAI5ZX9KCS8WO6f8kOnk0Yj7KotTY=
 github.com/wxnacy/gotool v0.0.0-20230221154535-07ea529aa73b h1:zJu5CAXzS21jBUi3EC8QFKivJ9h0ejVRrewTcg3qKlo=
 github.com/wxnacy/gotool v0.0.0-20230221154535-07ea529aa73b/go.mod h1:yHj/jvel69XkKNsAI5ZX9KCS8WO6f8kOnk0Yj7KotTY=
+github.com/wxnacy/gotool v0.0.0-20230226103005-16eaae6bc470 h1:RK69cJvmLqgAmsHu85MquoiHfO5vttbxavU1xAyLplU=
+github.com/wxnacy/gotool v0.0.0-20230226103005-16eaae6bc470/go.mod h1:yHj/jvel69XkKNsAI5ZX9KCS8WO6f8kOnk0Yj7KotTY=
 golang.org/x/sys v0.0.0-20200116001909-b77594299b42/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 h1:F5Gozwx4I1xtr/sr/8CFbb57iKi3297KFs0QDbGN60A=
