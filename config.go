@@ -16,7 +16,7 @@ func init() {
 		os.Mkdir(TMP_DIR, common.PermDir)
 	}
 
-	err = initConfigDir()
+	err := initConfigDir()
 	if err != nil {
 		panic(err)
 	}
@@ -148,7 +148,7 @@ func GetCredentail(appId string) (*Credential, error) {
 
 func GetCredentails() ([]*Credential, error) {
 	credentials := make([]_Credential, 0)
-	err = common.ReadFileToInterface(credentialsPath, &credentials)
+	err := common.ReadFileToInterface(credentialsPath, &credentials)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func GetCredentails() ([]*Credential, error) {
 
 func AddCredentail(c Credential) error {
 	credentials := make([]_Credential, 0)
-	err = common.ReadFileToInterface(credentialsPath, &credentials)
+	err := common.ReadFileToInterface(credentialsPath, &credentials)
 	if err != nil {
 		// TODO: 增加错误日志
 		credentials = make([]_Credential, 0)

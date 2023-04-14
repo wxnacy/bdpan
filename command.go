@@ -260,7 +260,7 @@ func (l LoginCommand) getVipName(vipType int32) string {
 
 func (l LoginCommand) Run() error {
 	appId := *l.AppId
-	// var cres []*Credential
+	var err error
 	if appId == "" {
 		_, err = GetCredentails()
 	} else {
@@ -337,7 +337,7 @@ type DeleteCommand struct {
 func (d DeleteCommand) Run() error {
 	path := *d.Path
 	if path != "" {
-		err = DeleteFile(path)
+		err := DeleteFile(path)
 		if err != nil {
 			return err
 		}
@@ -384,7 +384,7 @@ func (u UploadCommand) Run() error {
 			to = filepath.Join(to, filepath.Base(from))
 		}
 		fmt.Printf("Upload %s to %s\n", from, to)
-		_, err = UploadFile(from, to)
+		_, err := UploadFile(from, to)
 		if err != nil {
 			return err
 		}
@@ -464,8 +464,7 @@ func (d DownloadCommand) Run() error {
 	to := *d.To
 	path := filepath.Join(to, filepath.Base(from))
 	if common.FileExists(path) {
-		fmt.Fprintf(os.Stderr, "下载失败 %s 已存在\n", path)
-		return err
+		return errors.New(fmt.Sprintf("下载失败 %s 已存在\n", path))
 	}
 	file, err := GetFileByPath(from)
 	if err != nil {

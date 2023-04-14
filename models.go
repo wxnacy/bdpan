@@ -20,7 +20,7 @@ func newCredentail(c Credential) *_Credential {
 
 func (c _Credential) GetCredentail() (*Credential, error) {
 	res := &Credential{}
-	err = decryptHexToInterface(c.Credentail, res)
+	err := decryptHexToInterface(c.Credentail, res)
 	if err != nil {
 		return nil, err
 	}
