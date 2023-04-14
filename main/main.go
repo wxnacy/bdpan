@@ -1,21 +1,18 @@
 package main
 
 import (
+	"bdpan"
 	"fmt"
 	"os"
 
 	"github.com/akamensky/argparse"
 )
 
-var (
-	err error
-)
-
 func main() {
 	// 注册命令工具
 	parser := argparse.NewParser("bdpan", "百度网盘命令行工具")
-	commands := NewCommands(parser)
-	err = parser.Parse(os.Args)
+	commands := bdpan.NewCommands(parser)
+	err := parser.Parse(os.Args)
 	if err != nil {
 		fmt.Print(parser.Usage(err))
 		return

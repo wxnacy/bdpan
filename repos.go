@@ -1,4 +1,4 @@
-package main
+package bdpan
 
 func getDirFileInfoMap(dir string) (map[string]FileInfoDto, error) {
 	files, err := GetDirAllFiles(dir)

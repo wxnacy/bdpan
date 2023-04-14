@@ -1,1 +1,5 @@
-package main
+package bdpan
+
+var (
+	err error
+)

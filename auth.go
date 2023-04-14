@@ -1,4 +1,4 @@
-package main
+package bdpan
 
 import (
 	"bdpan/openapi"
