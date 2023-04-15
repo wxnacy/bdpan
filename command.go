@@ -293,7 +293,7 @@ func (l LoginCommand) Run() error {
 		config.LoginAppId = appId
 	}
 
-	user, err := userInfo()
+	user, err := UserInfo()
 	// 获取用户信息失败，可能是授权过期则需要进行授权操作
 	if err != nil {
 		err = CreateAccessTokenByDeviceCode()
@@ -303,7 +303,7 @@ func (l LoginCommand) Run() error {
 		}
 	}
 	fmt.Printf("Hello, %s(%s)\n", user.GetNetdiskName(), l.getVipName(user.GetVipType()))
-	pan, err := panInfo()
+	pan, err := PanInfo()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "获取网盘信息失败 %s\n", err.Error())
 		return err

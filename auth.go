@@ -142,7 +142,7 @@ func ScheRefreshAccessToken() error {
 	return RefreshAccessToken()
 }
 
-func userInfo() (*openapi.Uinforesponse, error) {
+func UserInfo() (*openapi.Uinforesponse, error) {
 	token, err := GetConfigAccessToken()
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ func userInfo() (*openapi.Uinforesponse, error) {
 	return &resp, nil
 }
 
-func panInfo() (*openapi.Quotaresponse, error) {
+func PanInfo() (*openapi.Quotaresponse, error) {
 	token, err := GetConfigAccessToken()
 	if err != nil {
 		return nil, err
