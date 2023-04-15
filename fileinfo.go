@@ -101,8 +101,13 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 func GetFileByPath(path string) (*FileInfoDto, error) {
 	dir, name := filepath.Split(path)
 	res, err := NewFileSearchRequest(name).Dir(dir).Execute()
+	Log.Debugf("search resp: %v", res)
+	Log.Debugf("search error: %v", err)
 	if err != nil {
 		return nil, err
+	}
+	if res.IsError() {
+		return nil, res.Err()
 	}
 	if len(res.List) > 0 {
 		return res.List[0], nil
@@ -118,6 +123,8 @@ func fileSearch(req FileSearchRequest) (*FileListResponse, error) {
 	_, r, err := GetClient().FileinfoApi.Xpanfilesearch(
 		context.Background()).AccessToken(token.AccessToken).Key(
 		req.key).Recursion(req.GetRecursion()).Execute()
+	Log.Debugf("Xpanfilesearch resp: %v", r)
+	Log.Debugf("Xpanfilesearch error: %v", err)
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package bdpan
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,7 +13,7 @@ type Response struct {
 }
 
 func (r Response) IsError() bool {
-	return r.Errno == 0
+	return r.Errno > 0
 }
 
 func (r Response) Error() string {
@@ -20,6 +21,10 @@ func (r Response) Error() string {
 		return "接口请求过于频繁，注意控制"
 	}
 	return fmt.Sprintf("未知错误: %d", r.Errno)
+}
+
+func (r Response) Err() error {
+	return errors.New(r.Error())
 }
 
 type UploadDirResponse struct {
