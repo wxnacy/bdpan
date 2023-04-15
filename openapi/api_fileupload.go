@@ -13,12 +13,10 @@ package openapi
 import (
 	"bytes"
 	_context "context"
-	"fmt"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
 	_neturl "net/url"
 	"os"
-	"strings"
 )
 
 // Linger please
@@ -521,13 +519,8 @@ func (a *FileuploadApiService) XpanfileprecreateExecute(r ApiXpanfileprecreateRe
 		return localVarReturnValue, localVarHTTPResponse, newErr
 	}
 
-	strBody := string(localVarBody)
-	strBody = strings.ReplaceAll(strBody, "[0]", "[]")
-	localVarBody = []byte(strBody)
-
 	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 	if err != nil {
-		fmt.Println("==========")
 		newErr := GenericOpenAPIError{
 			body:  localVarBody,
 			error: err.Error(),
