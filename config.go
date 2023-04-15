@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 func init() {
@@ -32,7 +34,7 @@ const (
 )
 
 var (
-	conifg_dir, _   = common.ExpandUser("~/.config/bdpan")
+	conifg_dir, _   = homedir.Expand("~/.config/bdpan")
 	keyPath         = joinConfigPath("key")
 	credentialsPath = joinConfigPath("credentials")
 	tokenPath       = joinConfigPath("access_token")
