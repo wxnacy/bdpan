@@ -5,13 +5,16 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bdpan"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 var (
 	argAppId string
+	argDebug bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -32,4 +35,12 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&argAppId, "app-id", "", "指定添加 App Id")
+	rootCmd.PersistentFlags().BoolVarP(&argDebug, "debug", "D", false, "debug 模式")
+
+	// 运行前全局命令
+	cobra.OnInitialize(func() {
+		if argDebug {
+			bdpan.SetLogLevel(logrus.DebugLevel)
+		}
+	})
 }
