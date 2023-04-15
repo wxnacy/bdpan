@@ -46,18 +46,6 @@ func (l LoginCommand) buildCredentail() bdpan.Credential {
 	return credential
 }
 
-func (l LoginCommand) getVipName(vipType int32) string {
-	switch vipType {
-	case 0:
-		return "普通用户"
-	case 1:
-		return "普通会员"
-	case 2:
-		return "超级会员"
-	}
-	return "未知身份"
-}
-
 func (l LoginCommand) Run() error {
 	// appId := *l.AppId
 	appId := argAppId
@@ -103,7 +91,7 @@ func (l LoginCommand) Run() error {
 			return err
 		}
 	}
-	fmt.Printf("Hello, %s(%s)\n", user.GetNetdiskName(), l.getVipName(user.GetVipType()))
+	fmt.Printf("Hello, %s(%s)\n", user.GetNetdiskName(), user.GetVipName())
 	pan, err := bdpan.PanInfo()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "获取网盘信息失败 %s\n", err.Error())

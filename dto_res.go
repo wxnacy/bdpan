@@ -1,6 +1,7 @@
 package bdpan
 
 import (
+	"bdpan/openapi"
 	"fmt"
 	"net/http"
 	"os"
@@ -41,6 +42,22 @@ func (f FileInfoDto) GetFilename() string {
 func (f FileInfoDto) PrintOneLine() {
 	// fmt.Printf("%d\t%s\t%s\t%d\n", f.FSID, f.MD5, f.GetFilename(), f.Size)
 	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), gotool.FormatSize(int64(f.Size)))
+}
+
+type UserInfoDto struct {
+	openapi.Uinforesponse
+}
+
+func (u UserInfoDto) GetVipName() string {
+	switch u.GetVipType() {
+	case 0:
+		return "普通用户"
+	case 1:
+		return "普通会员"
+	case 2:
+		return "超级会员"
+	}
+	return "未知身份"
 }
 
 func printFileInfoList(files []*FileInfoDto) {
