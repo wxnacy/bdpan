@@ -23,6 +23,9 @@ func UploadFile(fromPath, toPath string) (*FileInfoDto, error) {
 	if err != nil {
 		return nil, err
 	}
+	if res.IsError() {
+		return nil, res.Err()
+	}
 	return &res.FileInfoDto, err
 }
 
@@ -43,8 +46,9 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 	tmpdir := TMP_DIR
 
 	paths, err := SplitFile(fromPath, tmpdir, FRAGMENT_MAX_SIZE)
+	Log.Debugf("SplitFile paths: %v", paths)
+	Log.Debugf("SplitFile error: %v", err)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "SplitFile error: %s\n", err.Error())
 		return nil, err
 	}
 	blocklist := make([]string, 0)
@@ -59,10 +63,10 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 		context.Background()).AccessToken(token.AccessToken).Path(
 		toPath).Isdir(isDir).Size(int32(size)).Autoinit(
 		1).BlockList(blocklistStr).Rtype(rtype).Execute()
+	Log.Debugf("Xpanfileprecreate error: %v", err)
+	Log.Debugf("Xpanfileprecreate resp: %v", r)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Xpanfileprecreate error: %s\n", err.Error())
-		fmt.Fprintf(os.Stderr, "Xpanfileprecreate http response: %v\n", r)
-		return nil, err
+		return nil, NewErrorResponse(r).Err()
 	}
 	uploadId := resp.GetUploadid()
 	for i, _path := range paths {
@@ -76,19 +80,20 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 		if strings.HasPrefix(_path, tmpdir) {
 			os.Remove(_path)
 		}
+		Log.Debugf("Pcssuperfile2 path: %s", _path)
+		Log.Debugf("Pcssuperfile2 resp: %v", r)
+		Log.Debugf("Pcssuperfile2 error: %v", err)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Pcssuperfile2 error: %s\n", err.Error())
-			fmt.Fprintf(os.Stderr, "Pcssuperfile2 http response: %v\n", r)
-			return nil, err
+			return nil, NewErrorResponse(r).Err()
 		}
 	}
 	createRes, r, err := GetClient().FileuploadApi.Xpanfilecreate(
 		context.Background()).AccessToken(token.AccessToken).Path(toPath).Isdir(
 		isDir).Size(int32(size)).Uploadid(uploadId).BlockList(blocklistStr).Rtype(rtype).Execute()
+	Log.Debugf("Xpanfilecreate resp: %v", r)
+	Log.Debugf("Xpanfilecreate error: %v", err)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Xpanfilecreate error: %s\n", err.Error())
-		fmt.Fprintf(os.Stderr, "Xpanfilecreate http response: %v\n", r)
-		return nil, err
+		return nil, NewErrorResponse(r).Err()
 	}
 	if *createRes.Errno > 0 {
 		bytes, err := ioutil.ReadAll(r.Body)

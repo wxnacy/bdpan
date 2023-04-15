@@ -69,8 +69,8 @@ type FileListAllResponse struct {
 }
 
 type UploadFileResponse struct {
+	Response
 	FileInfoDto
-	Errno int32 `json:"errno"`
 }
 
 // ****************************************

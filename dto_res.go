@@ -2,6 +2,7 @@ package bdpan
 
 import (
 	"bdpan/openapi"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,10 +10,25 @@ import (
 	"github.com/wxnacy/gotool"
 )
 
+func NewErrorResponse(r *http.Response) *ErrorResponse {
+	errResp := &ErrorResponse{}
+	httpResponseToInterface(r, errResp)
+	return errResp
+}
+
 type ErrorResponse struct {
 	Error            string `json:"error"`
+	ErrorCode        int    `json:"error_code"`
+	ErrorMsg         string `json:"error_msg"`
 	ErrorDescription string `json:"error_description"`
 	r                *http.Response
+}
+
+func (e ErrorResponse) Err() error {
+	if e.ErrorCode > 0 {
+		return errors.New(fmt.Sprintf("%d[%s]", e.ErrorCode, e.ErrorMsg))
+	}
+	return errors.New(fmt.Sprintf("%s[%s]", e.Error, e.ErrorDescription))
 }
 
 func (e ErrorResponse) Print() {

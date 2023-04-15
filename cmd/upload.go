@@ -22,19 +22,9 @@ var (
 func NewUploadCommand(c *cobra.Command) *UploadCommand {
 	cmd := &UploadCommand{}
 
-	// cmd.From = c.String("f", "from",
-	// &argparse.Options{Required: true, Help: "文件来源"},
-	// )
-	// cmd.To = c.String("t", "to",
-	// &argparse.Options{
-	// Required: false, Help: "保存地址", Default: DEFAULT_UPLOAD_DIR},
-	// )
-	// cmd.IsSync = c.Flag("", "sync",
-	// &argparse.Options{
-	// Required: false, Help: "是否同步上传"},
-	// )
 	c.Flags().StringVarP(&cmd.From, "from", "f", "", "文件来源")
 	c.Flags().StringVarP(&cmd.To, "to", "t", bdpan.DEFAULT_UPLOAD_DIR, "保存地址")
+	c.Flags().BoolVar(&cmd.IsSync, "sync", false, "是否同步上传")
 	c.MarkFlagRequired("from")
 	return cmd
 }
@@ -42,7 +32,7 @@ func NewUploadCommand(c *cobra.Command) *UploadCommand {
 type UploadCommand struct {
 	From   string
 	To     string
-	IsSync *bool
+	IsSync bool
 }
 
 func (u UploadCommand) Run() error {
@@ -52,28 +42,28 @@ func (u UploadCommand) Run() error {
 		if strings.HasSuffix(to, "/") {
 			to = filepath.Join(to, filepath.Base(from))
 		}
-		fmt.Printf("Upload %s to %s\n", from, to)
+		bdpan.Log.Infof("Upload %s to %s", from, to)
 		_, err := bdpan.UploadFile(from, to)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("File: %s upload success\n", from)
-	}
-
-	if common.DirExists(from) {
-		if *u.IsSync {
+		bdpan.Log.Infof("File: %s upload success", from)
+	} else if common.DirExists(from) {
+		if u.IsSync {
 
 			res, err := bdpan.UploadDir(from, to)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Success: %d\n", res.SuccessCount)
-			fmt.Printf("Failed: %d\n", res.FailedCount)
+			bdpan.Log.Infof("Success: %d", res.SuccessCount)
+			bdpan.Log.Infof("Failed: %d", res.FailedCount)
 		} else {
 			bdpan.TaskUploadDir(from, to)
 		}
+	} else {
+		return errors.New(fmt.Sprintf("%s 文件路径不存在", from))
 	}
-	return errors.New(fmt.Sprintf("%s 文件路径不存在", from))
+	return nil
 }
 
 func runUpload(cmd *cobra.Command, args []string) error {
