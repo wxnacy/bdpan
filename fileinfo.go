@@ -208,8 +208,10 @@ func fileListAll(req FileListAllRequest) (*FileListAllResponse, error) {
 		token.AccessToken).Path(req.path).Web(req.GetWeb()).Start(
 		req.start).Limit(req.limit).Order(req.order).Recursion(
 		req.recursion).Desc(req.desc).Execute()
+	Log.Debugf("Xpanfilelistall resp: %v", r)
+	Log.Debugf("Xpanfilelistall error: %v", err)
 	if err != nil {
-		return nil, err
+		return nil, NewErrorResponse(r).Err()
 	}
 
 	res := &FileListAllResponse{}

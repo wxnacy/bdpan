@@ -31,6 +31,7 @@ func NewListCommand(c *cobra.Command) *ListCommand {
 	c.Flags().BoolVarP(&cmd.IsRecursion, "recursion", "r", false, "是否遍历子目录，默认否")
 	c.Flags().BoolVarP(&cmd.IsDesc, "desc", "", false, "是否为倒序，默认否")
 	c.Flags().Int32VarP(&cmd.Start, "start", "s", 0, "查询起点，默认为0")
+	c.Flags().Int32VarP(&cmd.Limit, "limit", "l", 1000, "查询数目，默认为1000")
 	c.Flags().StringVarP(&cmd.Order, "order", "o", "name", "排序字段:time(修改时间)，name(文件名)，size(大小，目录无大小)")
 	c.MarkFlagRequired("dir")
 	return cmd
