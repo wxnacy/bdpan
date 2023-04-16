@@ -85,32 +85,41 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 // return nil, err
 // }
 // return res.List, nil
-// }
-
-// func SearchFirstFile(dir, key string) (*FileInfoDto, error) {
-// res, err := NewFileSearchRequest(key).Dir(dir).Execute()
+// res, err := NewFileSearchRequest(name).Dir(dir).Execute()
+// Log.Debugf("search resp: %v", res)
+// Log.Debugf("search error: %v", err)
 // if err != nil {
 // return nil, err
 // }
-// if len(res.List) > 0 {
-// return res.List[0], nil
+// if res.IsError() {
+// return nil, res.Err()
 // }
-// return nil, errors.New(fmt.Sprintf("%s 找不到", key))
+// return res, nil
 // }
 
-func GetFileByPath(path string) (*FileInfoDto, error) {
-	dir, name := filepath.Split(path)
-	res, err := NewFileSearchRequest(name).Dir(dir).Execute()
-	Log.Debugf("search resp: %v", res)
-	Log.Debugf("search error: %v", err)
+// TODO: 暂时用遍历的方式查找文件，后期需要改为搜索
+func SearchFiles(dir, key string) ([]*FileInfoDto, error) {
+	files, err := GetDirAllFiles(dir)
 	if err != nil {
 		return nil, err
 	}
-	if res.IsError() {
-		return nil, res.Err()
+	res := make([]*FileInfoDto, 0)
+	for _, f := range files {
+		if f.GetFilename() == key {
+			res = append(res, f)
+		}
 	}
-	if len(res.List) > 0 {
-		return res.List[0], nil
+	return res, nil
+}
+
+func GetFileByPath(path string) (*FileInfoDto, error) {
+	dir, name := filepath.Split(path)
+	files, err := SearchFiles(dir, name)
+	if err != nil {
+		return nil, err
+	}
+	if len(files) > 0 {
+		return files[0], nil
 	}
 	return nil, errors.New(fmt.Sprintf("%s 找不到", path))
 }

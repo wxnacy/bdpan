@@ -60,11 +60,11 @@ func (q QueryCommand) Run() error {
 	}
 
 	if key != "" {
-		res, err := bdpan.NewFileSearchRequest(key).Dir(dir).Recursion(1).Execute()
+		files, err := bdpan.SearchFiles(dir, key)
 		if err != nil {
 			return err
 		}
-		res.Print()
+		printFileInfoList(files)
 		return nil
 	}
 	if dir != "" {
