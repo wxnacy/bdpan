@@ -8,7 +8,6 @@ import (
 	"bdpan"
 	"bdpan/common"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -61,7 +60,7 @@ func (u UploadCommand) Run() error {
 			bdpan.TaskUploadDir(from, to)
 		}
 	} else {
-		return errors.New(fmt.Sprintf("%s 文件路径不存在", from))
+		return errors.New("文件不存在")
 	}
 	return nil
 }

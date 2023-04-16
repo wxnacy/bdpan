@@ -30,16 +30,20 @@ func UploadFile(fromPath, toPath string) (*FileInfoDto, error) {
 }
 
 func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
-	token, err := GetConfigAccessToken()
-	if err != nil {
-		return nil, err
-	}
 	fromPath := req.fromPath
-	toPath := req.toPath
+	// 检查文件是否有内容
 	fileInfo, err := os.Stat(fromPath)
 	if err != nil {
 		return nil, err
 	}
+	if fileInfo.Size() == 0 {
+		return nil, errors.New("不能上传空文件")
+	}
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
+	}
+	toPath := req.toPath
 	rtype := req.rtype
 	isDir := req.isDir
 	size := fileInfo.Size()
