@@ -15,6 +15,8 @@ import (
 var (
 	argAppId string
 	argDebug bool
+
+	Log = bdpan.Log
 )
 
 // rootCmd represents the base command when called without any subcommands
