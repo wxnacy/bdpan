@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 )
 
 func GetDirAllFiles(dir string) ([]*FileInfoDto, error) {
@@ -79,7 +80,7 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 	return NewFileListResponse(r)
 }
 
-// func SearchFiles(dir, key string) ([]*FileInfoDto, error) {
+// func Search(dir, key string) ([]*FileInfoDto, error) {
 // res, err := NewFileSearchRequest(key).Execute()
 // if err != nil {
 // return nil, err
@@ -105,7 +106,7 @@ func SearchFiles(dir, key string) ([]*FileInfoDto, error) {
 	}
 	res := make([]*FileInfoDto, 0)
 	for _, f := range files {
-		if f.GetFilename() == key {
+		if strings.Contains(f.GetFilename(), key) {
 			res = append(res, f)
 		}
 	}
@@ -118,12 +119,15 @@ func GetFileByPath(path string) (*FileInfoDto, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(files) > 0 {
-		return files[0], nil
+	for _, f := range files {
+		if f.GetFilename() == name {
+			return f, nil
+		}
 	}
 	return nil, errors.New(fmt.Sprintf("%s 找不到", path))
 }
 
+// https://pan.baidu.com/union/doc/zksg0sb9z
 func fileSearch(req FileSearchRequest) (*FileListResponse, error) {
 	token, err := GetConfigAccessToken()
 	if err != nil {
@@ -198,6 +202,7 @@ func fileDelete(req FileDeleteRequest) (*FileManagerResponse, error) {
 	return res, nil
 }
 
+// https://pan.baidu.com/union/doc/Zksg0sb73
 func fileListAll(req FileListAllRequest) (*FileListAllResponse, error) {
 	token, err := GetConfigAccessToken()
 	if err != nil {
