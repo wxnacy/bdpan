@@ -17,7 +17,17 @@ func (r Response) IsError() bool {
 }
 
 func (r Response) Error() string {
-	if r.Errno == 31034 {
+	// https://pan.baidu.com/union/doc/okumlx17r
+	switch r.Errno {
+	case -6:
+		return "身份验证失败"
+	case 2:
+		return "参数错误"
+	case 6:
+		return "不允许接入用户数据"
+	case 111:
+		return "access token 失效"
+	case 31034:
 		return "接口请求过于频繁，注意控制"
 	}
 	return fmt.Sprintf("未知错误: %d", r.Errno)
@@ -56,6 +66,9 @@ func NewFileListResponse(r *http.Response) (*FileListResponse, error) {
 	dto := &FileListResponse{}
 	if err := json.Unmarshal(bodyBytes, dto); err != nil {
 		return nil, err
+	}
+	if dto.IsError() {
+		return nil, dto.Err()
 	}
 	return dto, nil
 }
