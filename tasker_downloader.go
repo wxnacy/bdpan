@@ -2,22 +2,24 @@ package bdpan
 
 import (
 	"bdpan/common"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/wxnacy/dler/godler"
+	"github.com/wxnacy/go-tasker"
 )
 
 func TaskDownloadDir(file *FileInfoDto, to string, isSync bool) error {
 	tasker := NewDownloadTasker(to)
 	tasker.FromFile = file
-	if isSync {
-		return tasker.SyncExec()
-	} else {
-		return tasker.Exec()
+	err := tasker.Exec(isSync)
+	if err != nil {
+		return err
 	}
+	total := len(tasker.GetTasks())
+	succ := total - len(tasker.GetErrorTasks())
+	Log.Infof("下载完成: %d/%d", succ, total)
+	return nil
 }
 
 type DownloadTaskInfo struct {
@@ -27,14 +29,13 @@ type DownloadTaskInfo struct {
 }
 
 func NewDownloadTasker(to string) *DownloadTasker {
-	t := DownloadTasker{
-		Tasker: godler.NewTasker(godler.NewTaskerConfig())}
+	t := DownloadTasker{Tasker: tasker.NewTasker()}
 	t.To = to
 	return &t
 }
 
 type DownloadTasker struct {
-	*godler.Tasker
+	*tasker.Tasker
 	// 迁移的地址
 	From     string
 	FromFile *FileInfoDto
@@ -47,11 +48,11 @@ type DownloadTasker struct {
 	succ     int         // 成功
 }
 
-func (m *DownloadTasker) Build() {
+func (m *DownloadTasker) Build() error {
 	if m.From != "" {
 		file, err := GetFileByPath(m.From)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		m.FromFile = file
 	}
@@ -64,7 +65,7 @@ func (m *DownloadTasker) Build() {
 		if common.DirExists(filepath.Dir(m.To)) && !common.DirExists(m.To) {
 			err := os.Mkdir(m.To, common.PermDir)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			m.toDir = m.To
 		} else {
@@ -72,18 +73,20 @@ func (m *DownloadTasker) Build() {
 		}
 	}
 
-	m.dler = &Downloader{DisableLog: true}
+	m.dler = &Downloader{}
+	return nil
 }
 
-func (m *DownloadTasker) AfterRun() {
+func (m *DownloadTasker) AfterRun() error {
+	return nil
 }
 
-func (m *DownloadTasker) BuildTasks() {
+func (m *DownloadTasker) BuildTasks() error {
 	// 构建下载文件夹时候的任务集合
 	if m.fromDir != "" {
 		files, err := GetDirAllFiles(m.fromDir)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		for _, f := range files {
 			if f.IsDir() {
@@ -92,53 +95,54 @@ func (m *DownloadTasker) BuildTasks() {
 			m.total++
 			to := filepath.Join(m.toDir, f.GetFilename())
 			info := DownloadTaskInfo{FromFile: f, To: to}
-			m.AddTask(&godler.Task{Info: info})
+			m.AddTask(&tasker.Task{Info: info})
 		}
 	}
+	return nil
 }
 
-func (m DownloadTasker) RunTask(task *godler.Task) error {
+func (m DownloadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(DownloadTaskInfo)
 	return m.dler.DownloadFile(info.FromFile, info.To)
 }
 
-func (m *DownloadTasker) BeforeRun() {
+func (m *DownloadTasker) BeforeRun() error {
 	if !common.DirExists(m.To) {
-		panic(errors.New(fmt.Sprintf("%s 目录不存在", m.To)))
-		// Log.Debugf("%s 目录不存在", m.To)
+		return fmt.Errorf("%s 目录不存在", m.To)
 	}
 	if !common.DirExists(m.toDir) {
-		Log.Infof("创建目录: %s", m.toDir)
+		Log.Debugf("创建目录: %s", m.toDir)
 		err := os.Mkdir(m.toDir, common.PermDir)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
-}
-
-func (m *DownloadTasker) Exec() error {
-	m.Build()
-	m.BuildTasks()
-	m.BeforeRun()
-	m.Run(m.RunTask)
-	m.AfterRun()
 	return nil
 }
 
-func (m *DownloadTasker) SyncExec() error {
-	m.Build()
-	m.dler.DisableLog = false
-	m.BuildTasks()
-	m.BeforeRun()
-	for _, task := range m.GetTasks() {
-		err := m.RunTask(task)
-		if err != nil {
-			Log.Errorf("%s 下载失败: %v", task.Info.(DownloadTaskInfo).FromFile.Path, err)
-		} else {
-			m.succ++
-		}
+func (m *DownloadTasker) Exec(isSync bool) error {
+	var err error
+	err = m.Build()
+	if err != nil {
+		return err
 	}
-	m.AfterRun()
-	Log.Infof("下载完成: %d/%d", m.succ, m.total)
-	return nil
+	err = m.BuildTasks()
+	if err != nil {
+		return err
+	}
+	err = m.BeforeRun()
+	if err != nil {
+		return err
+	}
+	if isSync {
+		m.Tasker.Config.UseProgressBar = false
+		err = m.SyncRun(m.RunTask)
+	} else {
+		m.dler.DisableLog = true
+		err = m.Run(m.RunTask)
+	}
+	if err != nil {
+		return err
+	}
+	return m.AfterRun()
 }
