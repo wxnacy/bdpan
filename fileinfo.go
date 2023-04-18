@@ -114,6 +114,8 @@ func SearchFiles(dir, key string) ([]*FileInfoDto, error) {
 }
 
 func GetFileByPath(path string) (*FileInfoDto, error) {
+	path = strings.TrimRight(path, "/")
+	Log.Infof("开始搜索文件: %s", path)
 	dir, name := filepath.Split(path)
 	files, err := SearchFiles(dir, name)
 	if err != nil {
@@ -121,6 +123,7 @@ func GetFileByPath(path string) (*FileInfoDto, error) {
 	}
 	for _, f := range files {
 		if f.GetFilename() == name {
+			Log.Infof("查询到文件类型为: %s", f.GetFileType())
 			return f, nil
 		}
 	}
