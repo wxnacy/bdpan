@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wxnacy/dler/godler"
+	"github.com/wxnacy/go-tasker"
 )
 
 func TaskUploadDir(from, to string) {
@@ -33,7 +33,7 @@ type UploadTaskInfo struct {
 }
 
 type UploadTasker struct {
-	*godler.Tasker
+	*tasker.Tasker
 	// 迁移的地址
 	From         string
 	To           string
@@ -42,7 +42,7 @@ type UploadTasker struct {
 }
 
 func NewUploadTasker(from, to string) *UploadTasker {
-	t := UploadTasker{Tasker: godler.NewTasker(godler.NewTaskerConfig())}
+	t := UploadTasker{Tasker: tasker.NewTasker()}
 	t.From = from
 	t.To = to
 	_, err := os.Stat(from)
@@ -79,11 +79,11 @@ func (m *UploadTasker) BuildTasks() {
 		from := filepath.Join(m.From, info.Name())
 		to := filepath.Join(m.toDir, info.Name())
 		info := UploadTaskInfo{From: from, To: to}
-		m.AddTask(&godler.Task{Info: info})
+		m.AddTask(&tasker.Task{Info: info})
 	}
 }
 
-func (m UploadTasker) RunTask(task *godler.Task) error {
+func (m UploadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(UploadTaskInfo)
 	existFile, exist := m.existFileMap[filepath.Base(info.From)]
 	if exist && existFile.Size > 0 {
@@ -94,11 +94,11 @@ func (m UploadTasker) RunTask(task *godler.Task) error {
 }
 
 func (m UploadTasker) RunSimple() []error {
-	total := len(m.Tasks)
+	total := len(m.GetTasks())
 	failCount := 0
 	successCount := 0
 	errors := make([]error, 0)
-	for _, task := range m.Tasks {
+	for _, task := range m.GetTasks() {
 		fmt.Printf("Process %d / %d (%d)\n", successCount, total, failCount)
 		info := task.Info.(UploadTaskInfo)
 		existFile, exist := m.existFileMap[filepath.Base(info.From)]
