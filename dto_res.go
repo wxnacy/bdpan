@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/wxnacy/gotool"
@@ -39,17 +40,18 @@ func (e ErrorResponse) Print() {
 }
 
 type FileInfoDto struct {
-	FSID           uint64 `json:"fs_id"`
-	Path           string `json:"path"`
-	Size           int    `json:"size"`
-	FileType       int    `json:"isdir"`
-	Filename       string `json:"filename"`
-	ServerFilename string `json:"server_filename"`
-	Category       int    `json:"category"`
-	ServerCTime    int64  `json:"server_ctime"`
-	ServerMTime    int64  `json:"server_mtime"`
-	Dlink          string `json:"dlink"`
-	MD5            string `json:"md5"`
+	FSID           uint64            `json:"fs_id"`
+	Path           string            `json:"path"`
+	Size           int               `json:"size"`
+	FileType       int               `json:"isdir"`
+	Filename       string            `json:"filename"`
+	ServerFilename string            `json:"server_filename"`
+	Category       int               `json:"category"`
+	Dlink          string            `json:"dlink"`
+	MD5            string            `json:"md5"`
+	Thumbs         map[string]string `json:"thumbs"`
+	ServerCTime    int64             `json:"server_ctime"`
+	ServerMTime    int64             `json:"server_mtime"`
 }
 
 func (f FileInfoDto) GetFilename() string {
@@ -109,8 +111,26 @@ func (f FileInfoDto) GetCategory() string {
 }
 
 func (f FileInfoDto) PrintOneLine() {
-	// fmt.Printf("%d\t%s\t%s\t%d\n", f.FSID, f.MD5, f.GetFilename(), f.Size)
 	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), gotool.FormatSize(int64(f.Size)))
+}
+
+func (f FileInfoDto) PrettyPrint() {
+	fields := [][]string{
+		[]string{"FSID", strconv.Itoa(int(f.FSID))},
+		[]string{"Name", f.GetFilename()},
+		[]string{"Filetype", f.GetFileType()},
+		[]string{"Size", gotool.FormatSize(int64(f.Size))},
+		[]string{"Path", f.Path},
+		[]string{"MD5", f.MD5},
+		// []string{"Thumbs", f.Thumbs},
+		[]string{"Dlink", f.Dlink},
+		[]string{"Ctime", f.GetServerCTime()},
+		[]string{"Mtime", f.GetServerMTime()},
+	}
+	for _, f := range fields {
+		fmt.Printf("%8s: %s\n", f[0], f[1])
+	}
+	fmt.Println("")
 }
 
 type UserInfoDto struct {
