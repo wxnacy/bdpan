@@ -31,10 +31,8 @@ func NewQueryCommand(cmd *cobra.Command) *QueryCommand {
 }
 
 type QueryCommand struct {
-	// *Command
-
-	Dir   string
-	Key   string
+	Dir   string // 目录
+	Key   string // 搜索关键字
 	FSIDS []string
 }
 
@@ -125,8 +123,8 @@ func printFileInfoList(files []*bdpan.FileInfoDto) {
 	fmt.Printf("Total: %d\n", len(files))
 }
 
-func runQuery(cmd *cobra.Command, args []string) error {
-	return queryCommand.Run()
+func handleCmdErr(err error) {
+	Log.Errorln(err)
 }
 
 // queryCmd represents the query command
@@ -134,7 +132,10 @@ var queryCmd = &cobra.Command{
 	Use:   "query",
 	Short: "查询数据",
 	Long:  ``,
-	RunE:  runQuery,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := queryCommand.Run()
+		handleCmdErr(err)
+	},
 }
 
 func init() {
