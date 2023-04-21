@@ -26,6 +26,7 @@ func NewQueryCommand(cmd *cobra.Command) *QueryCommand {
 	c := &QueryCommand{}
 	cmd.Flags().StringVarP(&c.Dir, "dir", "d", "", "查询目录")
 	cmd.Flags().StringVarP(&c.Key, "key", "k", "", "查询关键字")
+	cmd.Flags().StringVarP(&c.Path, "path", "p", "", "文件地址")
 	cmd.Flags().StringSliceVar(&c.FSIDS, "fsid", make([]string, 0), "查询 id 列表")
 	return c
 }
@@ -33,6 +34,7 @@ func NewQueryCommand(cmd *cobra.Command) *QueryCommand {
 type QueryCommand struct {
 	Dir   string // 目录
 	Key   string // 搜索关键字
+	Path  string // 文件地址
 	FSIDS []string
 }
 
@@ -73,6 +75,16 @@ func (q QueryCommand) Run() error {
 			return err
 		}
 		printFileInfoList(files)
+		return nil
+	}
+
+	path := queryCommand.Path
+	if path != "" {
+		file, err := bdpan.GetFileByPath(path)
+		if err != nil {
+			return err
+		}
+		file.PrettyPrint()
 		return nil
 	}
 	return nil
@@ -124,7 +136,9 @@ func printFileInfoList(files []*bdpan.FileInfoDto) {
 }
 
 func handleCmdErr(err error) {
-	Log.Errorln(err)
+	if err != nil {
+		Log.Errorln(err)
+	}
 }
 
 // queryCmd represents the query command
