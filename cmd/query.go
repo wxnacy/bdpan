@@ -88,7 +88,6 @@ func printFileInfoList(files []*bdpan.FileInfoDto) {
 		var length int
 		length = runewidth.StringWidth(f.GetFilename())
 		if length > filenameMaxLen {
-			// filenameMaxLen = len(f.GetFilename())
 			filenameMaxLen = length
 		}
 		length = len(strconv.Itoa(int(f.FSID)))
@@ -102,22 +101,22 @@ func printFileInfoList(files []*bdpan.FileInfoDto) {
 	}
 	idFmt := fmt.Sprintf("%%%ds", idMaxLen+1)
 	sizeFmt := fmt.Sprintf(" %%-%ds", sizeLen+1)
-	format := fmt.Sprintf("%s %%s %%-8s %-s %%-19s %%-19s\n", idFmt, sizeFmt)
+	format := fmt.Sprintf("%s %%s %%s %-s %%-19s %%-19s\n", idFmt, sizeFmt)
 	fmt.Printf(
 		format,
 		"FSID",
 		runewidth.FillRight("name", filenameMaxLen+1),
 		"Filetype",
-		"  Size",
-		"  ctime",
-		"  mtime",
+		"Size",
+		"ctime",
+		"mtime",
 	)
 	for _, f := range files {
 		fmt.Printf(
 			format,
 			strconv.Itoa(int(f.FSID)),
 			runewidth.FillRight(f.GetFilename(), filenameMaxLen+1),
-			f.GetFileType(),
+			runewidth.FillRight(f.GetFileType(), 8),
 			gotool.FormatSize(int64(f.Size)),
 			f.GetServerCTime(),
 			f.GetServerMTime(),
