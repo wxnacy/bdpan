@@ -61,6 +61,11 @@ func (f FileInfoDto) GetFilename() string {
 	return f.Filename
 }
 
+func (f FileInfoDto) GetSize() string {
+	return gotool.FormatSize(int64(f.Size))
+
+}
+
 func (f FileInfoDto) formatTime(t int64) string {
 	return time.Unix(t, 0).Format("2006-01-02 15:04:05")
 }
@@ -81,9 +86,53 @@ func (f FileInfoDto) IsDir() bool {
 	}
 }
 
+func (f FileInfoDto) GetFileTypeIcon() string {
+	if f.IsDir() {
+		return ""
+	}
+	icon, ok := GetIconByPath(f.GetFilename())
+	if !ok {
+		icon = GetDefaultFileIcon()
+	}
+	return icon.Icon
+}
+
+func (f FileInfoDto) GetFileTypeEmoji() string {
+	if f.IsDir() {
+		// 🗂️
+		return "\U0001f5c2"
+	} else {
+		switch f.Category {
+		case 1:
+			// 📹
+			return "\U0001f4f9"
+		case 2:
+			// 🎵
+			return "\U0001f3b5"
+		case 3:
+			// 🖼️
+			return "\U0001f5bc"
+		case 4:
+			// 📄
+			return "\U0001f4c4"
+		case 5:
+			// 🚀
+			return "\U0001f680"
+		case 6:
+			// 其他 🤷
+			return "\U0001f937"
+		case 7:
+			// 种子 🤷
+			return "\U0001f937"
+		}
+		// 🤷
+		return "\U0001f937"
+	}
+}
+
 func (f FileInfoDto) GetFileType() string {
 	if f.IsDir() {
-		return "目录"
+		return "文件夹"
 	} else {
 		return f.GetCategory()
 	}
@@ -111,18 +160,17 @@ func (f FileInfoDto) GetCategory() string {
 }
 
 func (f FileInfoDto) PrintOneLine() {
-	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), gotool.FormatSize(int64(f.Size)))
+	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), f.GetSize())
 }
 
 func (f FileInfoDto) PrettyPrint() {
 	fields := [][]string{
 		[]string{"FSID", strconv.Itoa(int(f.FSID))},
 		[]string{"Name", f.GetFilename()},
-		[]string{"Filetype", f.GetFileType()},
-		[]string{"Size", gotool.FormatSize(int64(f.Size))},
+		[]string{"Filetype", f.GetFileTypeIcon() + " " + f.GetFileType()},
+		[]string{"Size", f.GetSize()},
 		[]string{"Path", f.Path},
 		[]string{"MD5", f.MD5},
-		// []string{"Thumbs", f.Thumbs},
 		[]string{"Dlink", f.Dlink},
 		[]string{"Ctime", f.GetServerCTime()},
 		[]string{"Mtime", f.GetServerMTime()},
