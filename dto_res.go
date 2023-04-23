@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"text/template"
 	"time"
 
+	"github.com/mattn/go-runewidth"
 	"github.com/wxnacy/gotool"
 )
 
@@ -159,26 +161,65 @@ func (f FileInfoDto) GetCategory() string {
 	return "未知"
 }
 
-func (f FileInfoDto) PrintOneLine() {
-	fmt.Printf("%d\t%s\t%s\n", f.FSID, f.GetFilename(), f.GetSize())
+func (f FileInfoDto) PrettyPrint() {
+	tpl := `
+------------ {{.Path}} ---------------
+    FSID: {{.FSID}}
+    Name: {{.GetFilename}}
+Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
+    Size: {{.GetSize}}
+    Path: {{.Path}}
+     MD5: {{.MD5}}
+   CTime: {{.GetServerCTime}}
+   MTime: {{.GetServerMTime}}
+`
+	tmpl, _ := template.New("FileInfoDtoPrettyPrint").Parse(tpl)
+	_ = tmpl.Execute(os.Stdout, f)
 }
 
-func (f FileInfoDto) PrettyPrint() {
-	fields := [][]string{
-		[]string{"FSID", strconv.Itoa(int(f.FSID))},
-		[]string{"Name", f.GetFilename()},
-		[]string{"Filetype", f.GetFileTypeIcon() + " " + f.GetFileType()},
-		[]string{"Size", f.GetSize()},
-		[]string{"Path", f.Path},
-		[]string{"MD5", f.MD5},
-		[]string{"Dlink", f.Dlink},
-		[]string{"Ctime", f.GetServerCTime()},
-		[]string{"Mtime", f.GetServerMTime()},
+func PrintFileInfoList(files []*FileInfoDto) {
+	idMaxLen := len("fsid")
+	filenameMaxLen := len("name")
+	sizeLen := len("Size")
+	for _, f := range files {
+		var length int
+		length = runewidth.StringWidth(f.GetFilename())
+		if length > filenameMaxLen {
+			filenameMaxLen = length
+		}
+		length = len(strconv.Itoa(int(f.FSID)))
+		if length > idMaxLen {
+			idMaxLen = length
+		}
+		length = len(gotool.FormatSize(int64(f.Size)))
+		if length > sizeLen {
+			sizeLen = length
+		}
 	}
-	for _, f := range fields {
-		fmt.Printf("%8s: %s\n", f[0], f[1])
+	idFmt := fmt.Sprintf("%%%ds", idMaxLen+1)
+	sizeFmt := fmt.Sprintf(" %%-%ds", sizeLen+1)
+	format := fmt.Sprintf("%s %%s %%s %-s %%-19s %%-19s\n", idFmt, sizeFmt)
+	fmt.Printf(
+		format,
+		"FSID",
+		runewidth.FillRight("Name", filenameMaxLen+1),
+		"Filetype",
+		"Size",
+		"CTime",
+		"MTime",
+	)
+	for _, f := range files {
+		fmt.Printf(
+			format,
+			strconv.Itoa(int(f.FSID)),
+			runewidth.FillRight(f.GetFilename(), filenameMaxLen+1),
+			runewidth.FillRight(f.GetFileType(), 8),
+			gotool.FormatSize(int64(f.Size)),
+			f.GetServerCTime(),
+			f.GetServerMTime(),
+		)
 	}
-	fmt.Println("")
+	fmt.Printf("Total: %d\n", len(files))
 }
 
 type UserInfoDto struct {
@@ -195,11 +236,4 @@ func (u UserInfoDto) GetVipName() string {
 		return "超级会员"
 	}
 	return "未知身份"
-}
-
-func printFileInfoList(files []*FileInfoDto) {
-	for _, f := range files {
-		f.PrintOneLine()
-	}
-	fmt.Printf("Total: %d\n", len(files))
 }

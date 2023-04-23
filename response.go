@@ -54,7 +54,7 @@ func (f FileListResponse) Print() {
 		fmt.Println(f.Error())
 		return
 	}
-	printFileInfoList(f.List)
+	PrintFileInfoList(f.List)
 }
 
 func NewFileListResponse(r *http.Response) (*FileListResponse, error) {

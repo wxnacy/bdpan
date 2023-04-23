@@ -62,7 +62,7 @@ func (l ListCommand) Run() error {
 		fmt.Fprintf(os.Stderr, "查询失败 %s", err.Error())
 		return err
 	}
-	printFileInfoList(res.List)
+	bdpan.PrintFileInfoList(res.List)
 	if res.HasMore == 1 {
 		fmt.Printf("下一页查询命令 %d\n", res.Cursor)
 

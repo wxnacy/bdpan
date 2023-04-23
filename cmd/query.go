@@ -6,12 +6,9 @@ package cmd
 
 import (
 	"bdpan"
-	"fmt"
 	"strconv"
 
-	"github.com/mattn/go-runewidth"
 	"github.com/spf13/cobra"
-	"github.com/wxnacy/gotool"
 )
 
 var (
@@ -57,7 +54,7 @@ func (q QueryCommand) Run() error {
 		if err != nil {
 			panic(err)
 		}
-		printFileInfoList(files)
+		bdpan.PrintFileInfoList(files)
 		return nil
 	}
 
@@ -66,7 +63,7 @@ func (q QueryCommand) Run() error {
 		if err != nil {
 			return err
 		}
-		printFileInfoList(files)
+		bdpan.PrintFileInfoList(files)
 		return nil
 	}
 	if dir != "" {
@@ -74,7 +71,7 @@ func (q QueryCommand) Run() error {
 		if err != nil {
 			return err
 		}
-		printFileInfoList(files)
+		bdpan.PrintFileInfoList(files)
 		return nil
 	}
 
@@ -88,57 +85,6 @@ func (q QueryCommand) Run() error {
 		return nil
 	}
 	return nil
-}
-
-func printFileInfoList(files []*bdpan.FileInfoDto) {
-	idMaxLen := len("fsid")
-	filenameMaxLen := len("name")
-	sizeLen := len("Size")
-	for _, f := range files {
-		var length int
-		length = runewidth.StringWidth(f.GetFilename())
-		if length > filenameMaxLen {
-			filenameMaxLen = length
-		}
-		length = len(strconv.Itoa(int(f.FSID)))
-		if length > idMaxLen {
-			idMaxLen = length
-		}
-		length = len(gotool.FormatSize(int64(f.Size)))
-		if length > sizeLen {
-			sizeLen = length
-		}
-	}
-	idFmt := fmt.Sprintf("%%%ds", idMaxLen+1)
-	sizeFmt := fmt.Sprintf(" %%-%ds", sizeLen+1)
-	format := fmt.Sprintf("%s %%s %%s %-s %%-19s %%-19s\n", idFmt, sizeFmt)
-	fmt.Printf(
-		format,
-		"FSID",
-		runewidth.FillRight("name", filenameMaxLen+1),
-		"Filetype",
-		"Size",
-		"ctime",
-		"mtime",
-	)
-	for _, f := range files {
-		fmt.Printf(
-			format,
-			strconv.Itoa(int(f.FSID)),
-			runewidth.FillRight(f.GetFilename(), filenameMaxLen+1),
-			runewidth.FillRight(f.GetFileType(), 8),
-			gotool.FormatSize(int64(f.Size)),
-			f.GetServerCTime(),
-			f.GetServerMTime(),
-		)
-	}
-	fmt.Printf("Total: %d\n", len(files))
-}
-
-func handleCmdErr(err error) {
-	if err != nil {
-		Log.Errorln(err)
-	}
 }
 
 // queryCmd represents the query command
