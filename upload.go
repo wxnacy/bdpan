@@ -7,10 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/wxnacy/gotool"
 )
 
 const (
@@ -47,7 +51,9 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 	rtype := req.rtype
 	isDir := req.isDir
 	size := fileInfo.Size()
-	tmpdir := TMP_DIR
+	rand.Seed(time.Now().UnixNano())
+	tmpdir := filepath.Join(cacheDir, fmt.Sprintf("upload_tmp_%d", rand.Intn(1000)))
+	gotool.DirExistsOrCreate(tmpdir)
 
 	paths, err := SplitFile(fromPath, tmpdir, FRAGMENT_MAX_SIZE)
 	Log.Debugf("SplitFile paths: %v", paths)
@@ -91,6 +97,7 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 			return nil, NewErrorResponse(r).Err()
 		}
 	}
+	os.RemoveAll(tmpdir)
 	createRes, r, err := GetClient().FileuploadApi.Xpanfilecreate(
 		context.Background()).AccessToken(token.AccessToken).Path(toPath).Isdir(
 		isDir).Size(int32(size)).Uploadid(uploadId).BlockList(blocklistStr).Rtype(rtype).Execute()

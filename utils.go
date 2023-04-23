@@ -117,3 +117,9 @@ func SplitFile(path, tmpdir string, fragmentSize int64) ([]string, error) {
 	}
 	return paths, nil
 }
+
+func panicErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

@@ -2,48 +2,39 @@ package bdpan
 
 import (
 	"bdpan/common"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
-)
-
-func init() {
-	_credentailMap = make(map[string]*Credential, 0)
-	if !common.DirExists(TMP_DIR) {
-		os.Mkdir(TMP_DIR, common.PermDir)
-	}
-
-	err := initConfigDir()
-	if err != nil {
-		panic(err)
-	}
-	err = initCryptoKey()
-	if err != nil {
-		panic(err)
-	}
-}
-
-const (
-	TMP_DIR            = "/tmp/bdpan"
-	DEFAULT_UPLOAD_DIR = "/apps/bdpan/"
+	"github.com/wxnacy/gotool"
 )
 
 var (
-	conifg_dir, _   = homedir.Expand("~/.config/bdpan")
 	keyPath         = joinConfigPath("key")
 	credentialsPath = joinConfigPath("credentials")
 	tokenPath       = joinConfigPath("access_token")
-	_configPath     = joinConfigPath("config.json")
+	configPath      = joinConfigPath("config.json")
 
-	_credentailMap map[string]*Credential
-	_config        *Config
+	credentailMap = make(map[string]*Credential, 0)
+	_config       *Config
 )
 
+func init() {
+	var err error
+	err = gotool.DirExistsOrCreate(stoageDir)
+	panicErr(err)
+	err = gotool.DirExistsOrCreate(configDir)
+	panicErr(err)
+	err = gotool.DirExistsOrCreate(cacheDir)
+	panicErr(err)
+	err = initCryptoKey()
+	panicErr(err)
+	initLogger()
+}
+
+// 默认鉴权账户
 func defaultCredentail() (*Credential, error) {
 	items, err := GetCredentails()
 	if err != nil {
@@ -71,13 +62,12 @@ func GetConfigAccessToken() (*AccessToken, error) {
 
 func GetConfig() (*Config, error) {
 	if _config != nil {
-		// fmt.Println("Get config from cache")
 		return _config, nil
 	}
 
-	if common.FileExists(_configPath) {
+	if common.FileExists(configPath) {
 		config := &Config{}
-		err := common.ReadFileToInterface(_configPath, config)
+		err := common.ReadFileToInterface(configPath, config)
 		if err != nil {
 			return nil, err
 		}
@@ -91,33 +81,20 @@ func GetConfig() (*Config, error) {
 	}
 
 	_config = NewConfig(c.AppId)
-	// fmt.Println("Get config from new")
 	return _config, nil
 }
 
-func initConfigDir() error {
-	return os.MkdirAll(conifg_dir, common.PermDir)
-}
-
-// func initConfig() error {
-// return os.MkdirAll(conifg_dir, common.PermDir)
-// }
-
+// 初始化加密 key
 func initCryptoKey() error {
-	info, err := os.Stat(keyPath)
-	if err == nil {
-		if !info.IsDir() {
-			return nil
-		}
-		os.RemoveAll(keyPath)
+	if gotool.FileExists(keyPath) {
+		return nil
 	}
-
 	key := common.Md5(strconv.Itoa(int(time.Now().Unix())))
-	return os.WriteFile(keyPath, []byte(key), common.PermFile)
+	return gotool.FileWriteWithInterface(keyPath, key)
 }
 
 func joinConfigPath(name string) string {
-	return filepath.Join(conifg_dir, name)
+	return filepath.Join(configDir, name)
 }
 
 func GetKey() ([]byte, error) {
@@ -130,8 +107,7 @@ func saveCredentail(credentials []_Credential, c Credential) error {
 }
 
 func GetCredentail(appId string) (*Credential, error) {
-	if c, ok := _credentailMap[appId]; ok {
-		// fmt.Println("Get credentail from cache")
+	if c, ok := credentailMap[appId]; ok {
 		return c, nil
 	}
 	credentials, err := GetCredentails()
@@ -140,12 +116,11 @@ func GetCredentail(appId string) (*Credential, error) {
 	}
 	for _, c := range credentials {
 		if c.AppId == appId {
-			_credentailMap[appId] = c
-			// fmt.Println("Get credentail from file")
+			credentailMap[appId] = c
 			return c, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("AppId %s credentail not found", appId))
+	return nil, fmt.Errorf("AppId %s credentail not found", appId)
 }
 
 func GetCredentails() ([]*Credential, error) {
