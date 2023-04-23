@@ -6,7 +6,6 @@ package cmd
 
 import (
 	"bdpan"
-	"fmt"
 	"strings"
 
 	"github.com/manifoldco/promptui"
@@ -85,16 +84,6 @@ var rootCmd = &cobra.Command{
 		err = promptDir(globalArg.Dir)
 		handleCmdErr(err)
 	},
-}
-
-func handleCmdErr(err error) {
-	if err != nil {
-		if err.Error() == "^D" || err.Error() == "^C" {
-			fmt.Println("GoodBye")
-			return
-		}
-		Log.Errorln(err)
-	}
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

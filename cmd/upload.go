@@ -7,7 +7,7 @@ package cmd
 import (
 	"bdpan"
 	"bdpan/common"
-	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -41,32 +41,18 @@ func (u UploadCommand) Run() error {
 		if strings.HasSuffix(to, "/") {
 			to = filepath.Join(to, filepath.Base(from))
 		}
-		bdpan.Log.Infof("Upload %s to %s", from, to)
+		Log.Infof("Upload %s to %s", from, to)
 		_, err := bdpan.UploadFile(from, to)
 		if err != nil {
 			return err
 		}
-		bdpan.Log.Infof("File: %s upload success", from)
+		Log.Infof("File: %s upload success", from)
 	} else if common.DirExists(from) {
-		if u.IsSync {
-
-			res, err := bdpan.UploadDir(from, to)
-			if err != nil {
-				return err
-			}
-			bdpan.Log.Infof("Success: %d", res.SuccessCount)
-			bdpan.Log.Infof("Failed: %d", res.FailedCount)
-		} else {
-			bdpan.TaskUploadDir(from, to)
-		}
+		return bdpan.TaskUploadDir(from, to, u.IsSync)
 	} else {
-		return errors.New("文件不存在")
+		return fmt.Errorf("%s 不存在", from)
 	}
 	return nil
-}
-
-func runUpload(cmd *cobra.Command, args []string) error {
-	return uploadCommand.Run()
 }
 
 // uploadCmd represents the upload command
@@ -74,7 +60,10 @@ var uploadCmd = &cobra.Command{
 	Use:   "upload",
 	Short: "上传文件",
 	Long:  ``,
-	RunE:  runUpload,
+	Run: func(cmd *cobra.Command, args []string) {
+		err := uploadCommand.Run()
+		handleCmdErr(err)
+	},
 }
 
 func init() {
