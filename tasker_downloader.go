@@ -10,14 +10,15 @@ import (
 )
 
 func TaskDownloadDir(file *FileInfoDto, to string, isSync bool) error {
-	tasker := NewDownloadTasker(to)
-	tasker.FromFile = file
-	err := tasker.Exec(isSync)
+	t := NewDownloadTasker(to)
+	t.FromFile = file
+	t.IsSync = isSync
+	err := t.Exec()
 	if err != nil {
 		return err
 	}
-	total := len(tasker.GetTasks())
-	succ := total - len(tasker.GetErrorTasks())
+	total := len(t.GetTasks())
+	succ := total - len(t.GetErrorTasks())
 	Log.Infof("下载完成: %d/%d", succ, total)
 	return nil
 }
@@ -41,11 +42,11 @@ type DownloadTasker struct {
 	FromFile *FileInfoDto
 	Froms    []string
 	To       string
-	fromDir  string      // 文件夹地址
-	toDir    string      // 真实的保存目录
-	dler     *Downloader // 下载器
-	total    int         // 总数
-	succ     int         // 成功
+	IsSync   bool // 是否同步执行
+
+	fromDir string      // 文件夹地址
+	toDir   string      // 真实的保存目录
+	dler    *Downloader // 下载器
 }
 
 func (m *DownloadTasker) Build() error {
@@ -92,7 +93,6 @@ func (m *DownloadTasker) BuildTasks() error {
 			if f.IsDir() {
 				continue
 			}
-			m.total++
 			to := filepath.Join(m.toDir, f.GetFilename())
 			info := DownloadTaskInfo{FromFile: f, To: to}
 			m.AddTask(&tasker.Task{Info: info})
@@ -117,32 +117,15 @@ func (m *DownloadTasker) BeforeRun() error {
 			return err
 		}
 	}
+
+	if m.IsSync {
+		m.Tasker.Config.UseProgressBar = false // 不使用进度条
+	} else {
+		m.dler.DisableLog = true // 不输出下载日志
+	}
 	return nil
 }
 
-func (m *DownloadTasker) Exec(isSync bool) error {
-	var err error
-	err = m.Build()
-	if err != nil {
-		return err
-	}
-	err = m.BuildTasks()
-	if err != nil {
-		return err
-	}
-	err = m.BeforeRun()
-	if err != nil {
-		return err
-	}
-	if isSync {
-		m.Tasker.Config.UseProgressBar = false
-		err = m.SyncRun(m.RunTask)
-	} else {
-		m.dler.DisableLog = true
-		err = m.Run(m.RunTask)
-	}
-	if err != nil {
-		return err
-	}
-	return m.AfterRun()
+func (m *DownloadTasker) Exec() error {
+	return tasker.ExecTasker(m, m.IsSync)
 }
