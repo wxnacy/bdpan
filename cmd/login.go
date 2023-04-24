@@ -98,7 +98,7 @@ func (l LoginCommand) Run() error {
 		return err
 	}
 	fmt.Printf("网盘容量 %s/%s\n", gotool.FormatSize(pan.GetUsed()), gotool.FormatSize(pan.GetTotal()))
-	fmt.Printf("网盘总容量 %d", pan.GetTotal())
+	// fmt.Printf("网盘总容量 %d", pan.GetTotal())
 	return nil
 }
 

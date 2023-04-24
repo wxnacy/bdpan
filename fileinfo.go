@@ -63,6 +63,7 @@ func fileInfo(req FileInfoRequest) (*FileListResponse, error) {
 	return NewFileListResponse(r)
 }
 
+// https://pan.baidu.com/union/doc/nksg0sat9
 func fileList(req FileListRequest) (*FileListResponse, error) {
 	dir := *req.dir
 	token, err := GetConfigAccessToken()
