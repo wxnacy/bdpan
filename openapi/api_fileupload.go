@@ -205,6 +205,8 @@ type ApiXpanfilecreateRequest struct {
 	uploadid *string
 	blockList *string
 	rtype *int32
+	localCTime *int64
+	localMTime *int64
 }
 
 func (r ApiXpanfilecreateRequest) AccessToken(accessToken string) ApiXpanfilecreateRequest {
@@ -239,6 +241,16 @@ func (r ApiXpanfilecreateRequest) BlockList(blockList string) ApiXpanfilecreateR
 // rtype
 func (r ApiXpanfilecreateRequest) Rtype(rtype int32) ApiXpanfilecreateRequest {
 	r.rtype = &rtype
+	return r
+}
+// local_ctime
+func (r ApiXpanfilecreateRequest) LocalCTime(t int64) ApiXpanfilecreateRequest {
+	r.localCTime = &t
+	return r
+}
+// local_mtime
+func (r ApiXpanfilecreateRequest) LocalMTime(t int64) ApiXpanfilecreateRequest {
+	r.localMTime = &t
 	return r
 }
 
@@ -325,6 +337,12 @@ func (a *FileuploadApiService) XpanfilecreateExecute(r ApiXpanfilecreateRequest)
 	localVarFormParams.Add("block_list", parameterToString(*r.blockList, ""))
 	if r.rtype != nil {
 		localVarFormParams.Add("rtype", parameterToString(*r.rtype, ""))
+	}
+	if r.localCTime != nil {
+		localVarFormParams.Add("local_ctime", parameterToString(*r.localCTime, ""))
+	}
+	if r.localMTime != nil {
+		localVarFormParams.Add("local_mtime", parameterToString(*r.localMTime, ""))
 	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
