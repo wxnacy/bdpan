@@ -16,15 +16,6 @@ func TaskUploadDir(from, to string, isSync bool) error {
 	return tasker.ExecTasker(t, isSync)
 }
 
-// func TaskUploadDirSimple(from, to string) []error {
-// tasker := NewUploadTasker(from, to)
-// tasker.BuildTasks()
-// tasker.BeforeRun()
-// err := tasker.RunSimple()
-// tasker.AfterRun()
-// return err
-// }
-
 type UploadTaskInfo struct {
 	From string
 	To   string
@@ -89,31 +80,6 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 	_, err := UploadFile(info.From, info.To)
 	return err
 }
-
-// func (m UploadTasker) RunSimple() []error {
-// total := len(m.GetTasks())
-// failCount := 0
-// successCount := 0
-// errors := make([]error, 0)
-// for _, task := range m.GetTasks() {
-// fmt.Printf("Process %d / %d (%d)\n", successCount, total, failCount)
-// info := task.Info.(UploadTaskInfo)
-// existFile, exist := m.existFileMap[filepath.Base(info.From)]
-// if exist && existFile.Size > 0 {
-// successCount++
-// continue
-// }
-// _, err := UploadFile(info.From, info.To)
-// if err != nil {
-// errors = append(errors, err)
-// failCount++
-// continue
-// }
-// successCount++
-// }
-// return errors
-
-// }
 
 func (m *UploadTasker) BeforeRun() error {
 	var err error
