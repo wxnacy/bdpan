@@ -38,11 +38,22 @@ func (u UploadCommand) Run() error {
 	from := u.From
 	to := u.To
 	if common.FileExists(from) {
-		if strings.HasSuffix(to, "/") {
-			to = filepath.Join(to, filepath.Base(from))
+		// 获取准确上传地址
+		toFile, err := bdpan.GetFileByPath(to)
+		if err != nil && !strings.Contains(err.Error(), "找不到") {
+			return err
+		}
+		if toFile == nil {
+			if strings.HasSuffix(to, "/") {
+				to = filepath.Join(to, filepath.Base(from))
+			}
+		} else {
+			if toFile.IsDir() {
+				to = filepath.Join(to, filepath.Base(from))
+			}
 		}
 		Log.Infof("Upload %s to %s", from, to)
-		_, err := bdpan.UploadFile(from, to)
+		_, err = bdpan.UploadFile(from, to)
 		if err != nil {
 			return err
 		}
