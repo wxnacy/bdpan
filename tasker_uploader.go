@@ -1,6 +1,7 @@
 package bdpan
 
 import (
+	"bdpan/common"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,20 @@ import (
 )
 
 func TaskUploadDir(from, to string, isSync bool) error {
+	// 获取准确上传目录
+	toFile, err := GetFileByPath(to)
+	if err != nil && !strings.Contains(err.Error(), "找不到") {
+		return err
+	}
+	if toFile != nil {
+		if toFile.IsDir() {
+			fromBaseName := filepath.Base(from)
+			to = filepath.Join(to, fromBaseName)
+		} else {
+			return fmt.Errorf("%s 已存在", to)
+		}
+	}
+	// 构建上传任务
 	t := NewUploadTasker(from, to)
 	t.IsSync = isSync
 	return tasker.ExecTasker(t, isSync)
@@ -33,17 +48,15 @@ type UploadTasker struct {
 }
 
 func NewUploadTasker(from, to string) *UploadTasker {
+	Log.Debugf("NewUploadTasker from: %s, to: %s", from, to)
 	t := UploadTasker{Tasker: tasker.NewTasker()}
 	t.From = from
-	t.To = to
+	t.toDir = to
 	_, err := os.Stat(from)
 	if err != nil {
 		fmt.Print(err)
 		panic(err)
 	}
-	fromBaseName := filepath.Base(t.From)
-	t.toDir = filepath.Join(t.To, fromBaseName)
-
 	return &t
 }
 
@@ -75,9 +88,18 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(UploadTaskInfo)
 	existFile, exist := m.existFileMap[filepath.Base(info.From)]
 	if exist && existFile.Size > 0 {
-		return nil
+		// 对比已存在文件的修改时间是否相同，否则重新上传
+		_, mtime, err := common.GetFileTimes(info.From)
+		if err != nil {
+			return err
+		}
+		if existFile.LocalMTime == mtime.Unix() {
+			Log.Debugf("%s upload already", info.From)
+			return nil
+		}
 	}
-	_, err := UploadFile(info.From, info.To)
+	req := NewUploadFileRequest(info.From, info.To)
+	_, err := req.Execute()
 	return err
 }
 
