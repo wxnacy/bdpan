@@ -3,7 +3,10 @@ package common
 
 import (
 	"io/fs"
+	"os"
+	"time"
 
+	"github.com/djherbis/times"
 	"github.com/wxnacy/gotool"
 )
 
@@ -41,4 +44,38 @@ func WriteMapToFile(path string, data map[string]interface{}) error {
 
 func WriteInterfaceToFile(path string, data interface{}) error {
 	return gotool.FileWriteWithInterface(path, data)
+}
+
+// 获取文件的时间
+func GetFileTimes(path string) (ctime, mtime time.Time, err error) {
+	file, err := os.Stat(path)
+	if err != nil {
+		return
+	}
+	ctime, mtime = GetFileInfoTimes(file)
+	return
+}
+
+// 获取文件的时间
+func GetFileInfoTimes(f os.FileInfo) (ctime, mtime time.Time) {
+	fileTime := times.Get(f)
+	if fileTime.HasBirthTime() {
+		ctime = fileTime.BirthTime()
+	} else {
+		if fileTime.HasChangeTime() {
+			ctime = fileTime.ChangeTime()
+		} else {
+			ctime = fileTime.ModTime()
+		}
+	}
+	mtime = fileTime.ModTime()
+	return
+}
+
+func GetFileSize(path string) (int64, error) {
+	file, err := os.Stat(path)
+	if err != nil {
+		return 0, err
+	}
+	return file.Size(), nil
 }
