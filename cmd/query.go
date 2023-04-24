@@ -21,22 +21,19 @@ type QueryArg struct {
 
 func NewQueryCommand(cmd *cobra.Command) *QueryCommand {
 	c := &QueryCommand{}
-	cmd.Flags().StringVarP(&c.Dir, "dir", "d", "", "查询目录")
 	cmd.Flags().StringVarP(&c.Key, "key", "k", "", "查询关键字")
-	cmd.Flags().StringVarP(&c.Path, "path", "p", "", "文件地址")
+	cmd.Flags().StringVarP(&c.Path, "path", "p", "/", "文件地址")
 	cmd.Flags().StringSliceVar(&c.FSIDS, "fsid", make([]string, 0), "查询 id 列表")
 	return c
 }
 
 type QueryCommand struct {
-	Dir   string // 目录
 	Key   string // 搜索关键字
 	Path  string // 文件地址
 	FSIDS []string
 }
 
 func (q QueryCommand) Run() error {
-	dir := q.Dir
 	key := q.Key
 	fsids := q.FSIDS
 
@@ -56,33 +53,39 @@ func (q QueryCommand) Run() error {
 		}
 		bdpan.PrintFileInfoList(files)
 		return nil
-	}
+	} else {
+		path := queryCommand.Path
+		var isDir bool
+		if path == "/" {
+			isDir = true
+		} else {
 
-	if key != "" {
-		files, err := bdpan.SearchFiles(dir, key)
-		if err != nil {
-			return err
-		}
-		bdpan.PrintFileInfoList(files)
-		return nil
-	}
-	if dir != "" {
-		files, err := bdpan.GetDirAllFiles(dir)
-		if err != nil {
-			return err
-		}
-		bdpan.PrintFileInfoList(files)
-		return nil
-	}
+			file, err := bdpan.GetFileByPath(path)
+			if err != nil {
+				return err
+			}
+			isDir = file.IsDir()
+			if !isDir {
+				file.PrettyPrint()
+				return nil
 
-	path := queryCommand.Path
-	if path != "" {
-		file, err := bdpan.GetFileByPath(path)
-		if err != nil {
-			return err
+			}
 		}
-		file.PrettyPrint()
-		return nil
+		if isDir {
+			var files []*bdpan.FileInfoDto
+			var err error
+			if key != "" {
+				files, err = bdpan.SearchFiles(path, key)
+			} else {
+
+				files, err = bdpan.GetDirAllFiles(path)
+			}
+			if err != nil {
+				return err
+			}
+			bdpan.PrintFileInfoList(files)
+			return nil
+		}
 	}
 	return nil
 }

@@ -136,7 +136,12 @@ func (f FileInfoDto) GetFileType() string {
 	if f.IsDir() {
 		return "文件夹"
 	} else {
-		return f.GetCategory()
+		switch f.GetCategory() {
+		case "其他":
+			return "文件"
+		default:
+			return f.GetCategory()
+		}
 	}
 }
 
@@ -178,6 +183,7 @@ Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
 }
 
 func PrintFileInfoList(files []*FileInfoDto) {
+	fmt.Println()
 	idMaxLen := len("fsid")
 	filenameMaxLen := len("name")
 	sizeLen := len("Size")
