@@ -54,6 +54,8 @@ type FileInfoDto struct {
 	Thumbs         map[string]string `json:"thumbs"`
 	ServerCTime    int64             `json:"server_ctime"`
 	ServerMTime    int64             `json:"server_mtime"`
+	LocalCTime     int64             `json:"local_ctime"`
+	LocalMTime     int64             `json:"local_mtime"`
 }
 
 func (f FileInfoDto) GetFilename() string {
@@ -78,6 +80,14 @@ func (f FileInfoDto) GetServerCTime() string {
 
 func (f FileInfoDto) GetServerMTime() string {
 	return f.formatTime(f.ServerMTime)
+}
+
+func (f FileInfoDto) GetLocalCTime() string {
+	return f.formatTime(f.LocalCTime)
+}
+
+func (f FileInfoDto) GetLocalMTime() string {
+	return f.formatTime(f.LocalMTime)
 }
 
 func (f FileInfoDto) IsDir() bool {
@@ -177,6 +187,8 @@ Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
      MD5: {{.MD5}}
    CTime: {{.GetServerCTime}}
    MTime: {{.GetServerMTime}}
+  LCTime: {{.GetLocalCTime}}
+  LMTime: {{.GetLocalMTime}}
 `
 	tmpl, _ := template.New("FileInfoDtoPrettyPrint").Parse(tpl)
 	_ = tmpl.Execute(os.Stdout, f)

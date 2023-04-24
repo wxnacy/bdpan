@@ -22,7 +22,7 @@ func NewUploadCommand(c *cobra.Command) *UploadCommand {
 	cmd := &UploadCommand{}
 
 	c.Flags().StringVarP(&cmd.From, "from", "f", "", "文件来源")
-	c.Flags().StringVarP(&cmd.To, "to", "t", bdpan.DefaultDownloadDir, "保存地址")
+	c.Flags().StringVarP(&cmd.To, "to", "t", bdpan.DefaultUploadDir, "保存地址")
 	c.Flags().BoolVar(&cmd.IsSync, "sync", false, "是否同步上传")
 	c.MarkFlagRequired("from")
 	return cmd

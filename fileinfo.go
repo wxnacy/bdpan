@@ -22,7 +22,7 @@ func GetDirAllFiles(dir string) ([]*FileInfoDto, error) {
 		fileList = res.List
 		totalList = append(totalList, fileList...)
 
-		if len(fileList) <= 0 {
+		if len(fileList) <= 0 || len(fileList) < int(req.limit) {
 			break
 		}
 		page++
@@ -73,6 +73,8 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 		context.Background()).AccessToken(
 		token.AccessToken).Dir(dir).Web(req.GetWeb()).Start(
 		req.GetStart()).Limit(req.limit).Execute()
+	Log.Debugf("Xpanfilelist resp: %v", r)
+	Log.Debugf("Xpanfilelist err: %v", err)
 	if err != nil {
 		return nil, err
 	}
