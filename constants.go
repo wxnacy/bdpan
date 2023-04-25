@@ -1,6 +1,8 @@
 package bdpan
 
 import (
+	"path/filepath"
+
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -18,3 +20,12 @@ var (
 	// 缓存目录
 	cacheDir, _ = homedir.Expand("~/.cache/bdpan")
 )
+
+func JoinStoage(elem ...string) string {
+	return join(stoageDir, elem...)
+}
+
+func join(root string, elem ...string) string {
+	elem = append([]string{root}, elem...)
+	return filepath.Join(elem...)
+}
