@@ -108,7 +108,9 @@ func (u *UploadTasker) getSubDir(path string) string {
 
 func (m UploadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(UploadTaskInfo)
-	existFile, exist := m.existFileMap[filepath.Base(info.From)]
+	localKey := strings.TrimLeft(strings.Replace(info.From, m.From, "", 1), "/")
+	existFile, exist := m.existFileMap[localKey]
+	// fmt.Println(localKey, exist)
 	if exist && existFile.Size > 0 {
 		// 对比已存在文件的修改时间是否相同，否则重新上传
 		_, mtime, err := common.GetFileTimes(info.From)
@@ -127,7 +129,7 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 
 func (m *UploadTasker) BeforeRun() error {
 	var err error
-	m.existFileMap, err = getDirFileInfoMap(m.toDir)
+	m.existFileMap, err = getDirFileInfoMap(m.toDir, true)
 	if err != nil {
 		return err
 	}
