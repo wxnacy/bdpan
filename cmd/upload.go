@@ -23,15 +23,19 @@ func NewUploadCommand(c *cobra.Command) *UploadCommand {
 
 	c.Flags().StringVarP(&cmd.From, "from", "f", "", "文件来源")
 	c.Flags().StringVarP(&cmd.To, "to", "t", bdpan.DefaultUploadDir, "保存地址")
-	c.Flags().BoolVar(&cmd.IsSync, "sync", false, "是否同步上传")
+	c.Flags().BoolVarP(&cmd.IsRecursion, "recursion", "r", false, "是否递归子文件夹文件")
+	c.Flags().BoolVarP(&cmd.IsIncludeHide, "hide", "H", false, "是否上传隐藏文件")
+	c.Flags().BoolVarP(&cmd.IsSync, "sync", "s", false, "是否同步上传")
 	c.MarkFlagRequired("from")
 	return cmd
 }
 
 type UploadCommand struct {
-	From   string
-	To     string
-	IsSync bool
+	From          string
+	To            string
+	IsSync        bool
+	IsRecursion   bool // 是否递归子文件夹文件
+	IsIncludeHide bool // 是否上传隐藏文件
 }
 
 func (u UploadCommand) Run() error {
@@ -59,7 +63,7 @@ func (u UploadCommand) Run() error {
 		}
 		Log.Infof("File: %s upload success", from)
 	} else if common.DirExists(from) {
-		return bdpan.TaskUploadDir(from, to, u.IsSync)
+		return bdpan.TaskUploadDir(from, to, u.IsSync, u.IsRecursion, u.IsIncludeHide)
 	} else {
 		return fmt.Errorf("%s 不存在", from)
 	}
