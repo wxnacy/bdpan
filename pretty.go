@@ -77,12 +77,21 @@ func getMaxLengthMap(items []Pretty) map[string]int {
 		for _, d := range data {
 			name := d.Name
 			leng, exit := m[name]
-			leng = int(math.Max(float64(len(name)), float64(leng)))
 			if exit {
 				leng = int(math.Max(float64(runewidth.StringWidth(d.Value)), float64(leng)))
+			} else {
+				leng = runewidth.StringWidth(d.Value)
 			}
 			m[name] = leng
 		}
+	}
+	for _, d := range items[0].BuildPrintData() {
+		name := d.Name
+		leng, exit := m[name]
+		if exit {
+			leng = int(math.Max(float64(len(name)), float64(leng)))
+		}
+		m[name] = leng
 	}
 	return m
 }
