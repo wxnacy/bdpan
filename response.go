@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+func NewRespError(r *http.Response) error {
+	return NewErrorResponse(r).Err()
+}
+
 func NewErrorResponse(r *http.Response) *ErrorResponse {
 	errResp := &ErrorResponse{}
 	httpResponseToInterface(r, errResp)

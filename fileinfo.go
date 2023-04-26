@@ -130,7 +130,7 @@ func GetFileByPath(path string) (*FileInfoDto, error) {
 			return f, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("%s 找不到", path))
+	return nil, fmt.Errorf("%s 找不到", path)
 }
 
 // https://pan.baidu.com/union/doc/zksg0sb9z
@@ -222,7 +222,7 @@ func fileListAll(req FileListAllRequest) (*FileListAllResponse, error) {
 	Log.Debugf("Xpanfilelistall resp: %v", r)
 	Log.Debugf("Xpanfilelistall error: %v", err)
 	if err != nil {
-		return nil, NewErrorResponse(r).Err()
+		return nil, NewRespError(r)
 	}
 
 	res := &FileListAllResponse{}
