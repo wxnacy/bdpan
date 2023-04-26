@@ -34,7 +34,11 @@ type SyncModel struct {
 }
 
 func (s SyncModel) getLogContent() string {
-	return fmt.Sprintf("%s ==> %s", s.Local, s.Remote)
+	mode := "同步"
+	if s.IsBackup() {
+		mode = "备份"
+	}
+	return fmt.Sprintf("%s ==> %s %s", s.Local, s.Remote, mode)
 }
 
 func (s SyncModel) BuildPrintData() []bdpan.PrettyData {
@@ -47,6 +51,14 @@ func (s SyncModel) BuildPrintData() []bdpan.PrettyData {
 	data = append(data, bdpan.PrettyData{Name: "Remote", Value: s.Remote})
 	data = append(data, bdpan.PrettyData{Name: "Mode", Value: s.GetMode()})
 	return data
+}
+
+func (s SyncModel) IsBackup() bool {
+	if s.Mode == ModeBackup {
+		return true
+	} else {
+		return false
+	}
 }
 
 func (s SyncModel) GetMode() string {
@@ -72,6 +84,7 @@ type SyncCommand struct {
 	Remote   string
 	Local    string
 	IsBackup bool // 是否为备份
+	HasHide  bool
 
 	IsCmdAdd  bool
 	IsCmdDel  bool
@@ -141,11 +154,14 @@ func (s SyncCommand) Run() error {
 
 func (s SyncCommand) syncModel(m *SyncModel) error {
 	fmt.Printf("开始同步 %s\n", m.getLogContent())
-	uTasker := bdpan.NewUploadTasker(m.Local, m.Remote)
-	uTasker.IsIncludeHide = true
-	uTasker.IsRecursion = true
-	err := uTasker.Exec()
-	return err
+	if m.IsBackup() {
+		uTasker := bdpan.NewUploadTasker(m.Local, m.Remote)
+		uTasker.IsIncludeHide = s.HasHide
+		uTasker.IsRecursion = true
+		err := uTasker.Exec()
+		return err
+	}
+	return nil
 }
 
 func (s SyncCommand) PrintList(models map[string]*SyncModel) {
@@ -171,6 +187,7 @@ func init() {
 	syncCmd.Flags().StringVarP(&syncCommand.ID, "id", "", "", "任务 id")
 	syncCmd.Flags().StringVarP(&syncCommand.Remote, "remote", "r", "", "远程文件夹")
 	syncCmd.Flags().StringVarP(&syncCommand.Local, "local", "l", "", "本地文件夹")
+	syncCmd.Flags().BoolVarP(&syncCommand.HasHide, "hide", "H", false, "是否包含隐藏文件")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsBackup, "backup", "", false, "是否为备份目录")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdAdd, "add", "", false, "添加同步目录")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdDel, "delete", "", false, "删除同步目录")
