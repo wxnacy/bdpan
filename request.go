@@ -15,10 +15,11 @@ type UploadFileRequest struct {
 	rtype    int32
 	isDir    int32
 	size     int32
+	isSync   bool
 }
 
-func NewUploadFileRequest(fromPath, toPath string) UploadFileRequest {
-	return UploadFileRequest{
+func NewUploadFileRequest(fromPath, toPath string) *UploadFileRequest {
+	return &UploadFileRequest{
 		fromPath: fromPath, toPath: toPath, _type: "tmpfile",
 		partseq: 0, rtype: int32(3), isDir: int32(0),
 	}
@@ -36,6 +37,11 @@ func (r UploadFileRequest) ToPath(path string) UploadFileRequest {
 
 func (r UploadFileRequest) Type(typ string) UploadFileRequest {
 	r._type = typ
+	return r
+}
+
+func (r *UploadFileRequest) IsSync(s bool) *UploadFileRequest {
+	r.isSync = s
 	return r
 }
 

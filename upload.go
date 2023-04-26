@@ -6,14 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 	"time"
 
+	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/gotool"
 )
 
@@ -80,32 +78,25 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 	Log.Debugf("Xpanfileprecreate error: %v", err)
 	Log.Debugf("Xpanfileprecreate resp: %v", r)
 	if err != nil {
-		return nil, NewErrorResponse(r).Err()
+		return nil, NewRespError(r)
 	}
 	uploadId := resp.GetUploadid()
-	for i, _path := range paths {
-
-		file, _ := os.Open(_path)
-		defer file.Close()
-		// 分片上传 https://pan.baidu.com/union/doc/nksg0s9vi
-		_, r, err := GetClient().FileuploadApi.Pcssuperfile2(
-			context.Background()).AccessToken(token.AccessToken).Partseq(
-			strconv.Itoa(i)).Path(
-			toPath).Uploadid(uploadId).Type_(req._type).File(file).Execute()
-		if strings.HasPrefix(_path, tmpdir) {
-			os.Remove(_path)
-		}
-		Log.Debugf("Pcssuperfile2 path: %s", _path)
-		Log.Debugf("Pcssuperfile2 resp: %v", r)
-		Log.Debugf("Pcssuperfile2 error: %v", err)
-		if err != nil {
-			return nil, NewErrorResponse(r).Err()
-		}
+	// 上传分片
+	ufTasker := &UploadFragmentTasker{
+		Tasker:  tasker.NewTasker(),
+		Request: &req, Token: token, UploadId: uploadId, TmpDir: tmpdir,
+		Fragments: paths, To: toPath,
 	}
-	// 清理缓存目录
-	os.RemoveAll(tmpdir)
+	if req.isSync {
+		ufTasker.Tasker.Config.UseProgressBar = false
+	}
+	ufTasker.IsSync = req.isSync
+	err = ufTasker.Exec()
+	if err != nil {
+		return nil, err
+	}
 	// 创建文件 https://pan.baidu.com/union/doc/rksg0sa17
-	createRes, r, err := GetClient().FileuploadApi.
+	_, r, err = GetClient().FileuploadApi.
 		Xpanfilecreate(context.Background()).AccessToken(token.AccessToken).
 		Path(toPath).Isdir(isDir).Size(int32(size)).Uploadid(uploadId).
 		BlockList(blocklistStr).Rtype(rtype).LocalCTime(localCTime.Unix()).
@@ -113,16 +104,7 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 	Log.Debugf("Xpanfilecreate resp: %v", r)
 	Log.Debugf("Xpanfilecreate error: %v", err)
 	if err != nil {
-		return nil, NewErrorResponse(r).Err()
-	}
-	if *createRes.Errno > 0 {
-		bytes, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Xpanfilecreate error: %s\n", err.Error())
-			fmt.Fprintf(os.Stderr, "Xpanfilecreate http response: %v\n", r)
-			return nil, err
-		}
-		return nil, errors.New(string(bytes))
+		return nil, NewRespError(r)
 	}
 
 	dto := &UploadFileResponse{}

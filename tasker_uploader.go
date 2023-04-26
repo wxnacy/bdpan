@@ -2,9 +2,11 @@ package bdpan
 
 import (
 	"bdpan/common"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/wxnacy/go-tasker"
@@ -122,7 +124,7 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 			return nil
 		}
 	}
-	req := NewUploadFileRequest(info.From, info.To)
+	req := NewUploadFileRequest(info.From, info.To).IsSync(true)
 	_, err := req.Execute()
 	return err
 }
@@ -130,12 +132,83 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 func (m *UploadTasker) BeforeRun() error {
 	var err error
 	m.existFileMap, err = getDirFileInfoMap(m.toDir, true)
-	if err != nil {
+	if err != nil && err != ErrPathNotFound {
 		return err
 	}
 	return nil
 }
 
 func (u *UploadTasker) Exec() error {
+	return tasker.ExecTasker(u, u.IsSync)
+}
+
+type UFTaskInfo struct {
+	Index int
+	From  string
+	To    string
+}
+
+type UploadFragmentTasker struct {
+	*tasker.Tasker
+	Request   *UploadFileRequest
+	Token     *AccessToken
+	UploadId  string
+	TmpDir    string
+	Fragments []string
+	To        string
+	IsSync    bool
+}
+
+func (u *UploadFragmentTasker) Build() error {
+	// 创建临时目录
+	var err error
+	return err
+}
+
+func (u *UploadFragmentTasker) BuildTasks() error {
+	for i, _path := range u.Fragments {
+		taskInfo := UFTaskInfo{From: _path, To: u.To, Index: i}
+		Log.Debugf("add Task: %#v", taskInfo)
+		u.AddTask(&tasker.Task{Info: taskInfo})
+	}
+	return nil
+}
+
+func (u UploadFragmentTasker) RunTask(task *tasker.Task) error {
+
+	info := task.Info.(UFTaskInfo)
+	from := info.From
+	file, _ := os.Open(from)
+	// TODO: defer 顺序
+	defer file.Close()
+	// 分片上传 https://pan.baidu.com/union/doc/nksg0s9vi
+	_, r, err := GetClient().FileuploadApi.Pcssuperfile2(
+		context.Background()).AccessToken(u.Token.AccessToken).Partseq(
+		strconv.Itoa(info.Index)).Path(
+		u.To).Uploadid(u.UploadId).Type_(u.Request._type).File(file).Execute()
+	if strings.HasPrefix(from, u.TmpDir) {
+		os.Remove(from)
+	}
+	Log.Debugf("Pcssuperfile2 path: %s", from)
+	Log.Debugf("Pcssuperfile2 resp: %v", r)
+	Log.Debugf("Pcssuperfile2 error: %v", err)
+	if err != nil {
+		return NewRespError(r)
+	}
+	return nil
+}
+
+func (u *UploadFragmentTasker) BeforeRun() error {
+	var err error
+	return err
+}
+
+func (u *UploadFragmentTasker) AfterRun() error {
+	var err error
+	err = os.RemoveAll(u.TmpDir)
+	return err
+}
+
+func (u *UploadFragmentTasker) Exec() error {
 	return tasker.ExecTasker(u, u.IsSync)
 }
