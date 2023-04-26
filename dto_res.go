@@ -2,44 +2,14 @@ package bdpan
 
 import (
 	"bdpan/openapi"
-	"errors"
 	"fmt"
-	"net/http"
-	"os"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
-	"github.com/mattn/go-runewidth"
 	"github.com/wxnacy/gotool"
 )
-
-func NewErrorResponse(r *http.Response) *ErrorResponse {
-	errResp := &ErrorResponse{}
-	httpResponseToInterface(r, errResp)
-	return errResp
-}
-
-type ErrorResponse struct {
-	Error            string `json:"error"`
-	ErrorCode        int    `json:"error_code"`
-	ErrorMsg         string `json:"error_msg"`
-	ErrorDescription string `json:"error_description"`
-	r                *http.Response
-}
-
-func (e ErrorResponse) Err() error {
-	if e.ErrorCode > 0 {
-		return errors.New(fmt.Sprintf("%d[%s]", e.ErrorCode, e.ErrorMsg))
-	}
-	return errors.New(fmt.Sprintf("%s[%s]", e.Error, e.ErrorDescription))
-}
-
-func (e ErrorResponse) Print() {
-	fmt.Fprintf(os.Stderr, "Error Code: %d\n", e.r.StatusCode)
-	fmt.Fprintf(os.Stderr, "Error: %s\n", e.Error)
-	fmt.Fprintf(os.Stderr, "Error Desc: %s\n", e.ErrorDescription)
-}
 
 type FileInfoDto struct {
 	FSID           uint64            `json:"fs_id"`
@@ -177,9 +147,11 @@ func (f FileInfoDto) GetCategory() string {
 }
 
 func (f FileInfoDto) PrettyPrint() {
-	tpl := `
------------- {{.Path}} ---------------
-    FSID: {{.FSID}}
+	fmt.Printf("------------ %s ---------------\n", f.Path)
+	fmt.Print(f.GetPretty())
+}
+func (f FileInfoDto) GetPretty() string {
+	tpl := `    FSID: {{.FSID}}
     Name: {{.GetFilename}}
 Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
     Size: {{.GetSize}}
@@ -191,53 +163,34 @@ Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
   LMTime: {{.GetLocalMTime}}
 `
 	tmpl, _ := template.New("FileInfoDtoPrettyPrint").Parse(tpl)
-	_ = tmpl.Execute(os.Stdout, f)
+	buf := new(strings.Builder)
+	_ = tmpl.Execute(buf, f)
+	return buf.String()
+}
+
+func (f FileInfoDto) BuildPrintData() []PrettyData {
+	var data = make([]PrettyData, 0)
+	data = append(data, PrettyData{
+		Name:       "FSID",
+		Value:      strconv.Itoa(int(f.FSID)),
+		IsFillLeft: true})
+	data = append(data, PrettyData{Name: "Name", Value: f.GetFilename()})
+	data = append(data, PrettyData{Name: "Filetype", Value: f.GetFileType()})
+	data = append(data, PrettyData{Name: "Size", Value: f.GetSize()})
+	// data = append(data, PrettyData{Name: "CTime", Value: f.GetServerCTime()})
+	data = append(data, PrettyData{Name: "MTime", Value: f.GetServerMTime()})
+	// data = append(data, PrettyData{Name: "LCTime", Value: f.GetLocalCTime()})
+	data = append(data, PrettyData{Name: "LMTime", Value: f.GetLocalMTime()})
+	return data
 }
 
 func PrintFileInfoList(files []*FileInfoDto) {
-	fmt.Println()
-	idMaxLen := len("fsid")
-	filenameMaxLen := len("name")
-	sizeLen := len("Size")
+	// return
+	prettyList := make([]Pretty, 0)
 	for _, f := range files {
-		var length int
-		length = runewidth.StringWidth(f.GetFilename())
-		if length > filenameMaxLen {
-			filenameMaxLen = length
-		}
-		length = len(strconv.Itoa(int(f.FSID)))
-		if length > idMaxLen {
-			idMaxLen = length
-		}
-		length = len(gotool.FormatSize(int64(f.Size)))
-		if length > sizeLen {
-			sizeLen = length
-		}
+		prettyList = append(prettyList, f)
 	}
-	idFmt := fmt.Sprintf("%%%ds", idMaxLen+1)
-	sizeFmt := fmt.Sprintf(" %%-%ds", sizeLen+1)
-	format := fmt.Sprintf("%s %%s %%s %-s %%-19s %%-19s\n", idFmt, sizeFmt)
-	fmt.Printf(
-		format,
-		"FSID",
-		runewidth.FillRight("Name", filenameMaxLen+1),
-		"Filetype",
-		"Size",
-		"CTime",
-		"MTime",
-	)
-	for _, f := range files {
-		fmt.Printf(
-			format,
-			strconv.Itoa(int(f.FSID)),
-			runewidth.FillRight(f.GetFilename(), filenameMaxLen+1),
-			runewidth.FillRight(f.GetFileType(), 8),
-			gotool.FormatSize(int64(f.Size)),
-			f.GetServerCTime(),
-			f.GetServerMTime(),
-		)
-	}
-	fmt.Printf("Total: %d\n", len(files))
+	PrettyPrintList(PrettyList(prettyList))
 }
 
 type UserInfoDto struct {
