@@ -37,11 +37,6 @@ func (r Response) Err() error {
 	return errors.New(r.Error())
 }
 
-// type UploadDirResponse struct {
-// SuccessCount int
-// FailedCount  int
-// }
-
 type FileListResponse struct {
 	Response
 	GuidInfo string         `json:"guid_info"`

@@ -47,35 +47,6 @@ func (r UploadFileRequest) Execute() (*UploadFileResponse, error) {
 	return uploadFile(r)
 }
 
-// type UploadDirRequest struct {
-// fromPath *string
-// toPath   *string
-// }
-
-// func NewUploadDirRequest(fromPath, toPath string) UploadDirRequest {
-// return UploadDirRequest{
-// fromPath: &fromPath, toPath: &toPath,
-// }
-// }
-
-// func (r UploadDirRequest) FromPath(path string) UploadDirRequest {
-// r.fromPath = &path
-// return r
-// }
-
-// func (r UploadDirRequest) ToPath(path string) UploadDirRequest {
-// r.toPath = &path
-// return r
-// }
-
-// func (r UploadDirRequest) Execute() (*UploadDirResponse, error) {
-// return uploadDir(r)
-// }
-
-// ****************************************
-// FileListRequest
-// ****************************************
-
 type FileListRequest struct {
 	dir   *string
 	web   int
