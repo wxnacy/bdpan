@@ -176,6 +176,7 @@ func GetFileBytes(fsid uint64) ([]byte, error) {
 }
 
 func DeleteFile(path string) error {
+	Log.Infof("开始删除 %s", path)
 	res, err := NewFileDeleteRequest([]string{path}).Execute()
 	if err != nil {
 		return err
@@ -185,6 +186,7 @@ func DeleteFile(path string) error {
 			return errors.New(fmt.Sprintf("%s delete failed", path))
 		}
 	}
+	Log.Info("删除成功")
 	return nil
 }
 

@@ -21,6 +21,10 @@ var (
 	cacheDir, _ = homedir.Expand("~/.cache/bdpan")
 )
 
+func JoinDownload(elem ...string) string {
+	return join(DefaultDownloadDir, elem...)
+}
+
 func JoinStoage(elem ...string) string {
 	return join(stoageDir, elem...)
 }
