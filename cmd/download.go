@@ -42,6 +42,8 @@ func (d DownloadCommand) Run() error {
 	if err != nil {
 		return err
 	}
+	Log.Debugf("是否同步: %v", d.IsSync)
+	Log.Info("开始下载")
 	if file.IsDir() {
 		err = bdpan.TaskDownloadDir(file, to, d.IsSync)
 	} else {
