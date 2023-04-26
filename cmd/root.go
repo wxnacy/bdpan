@@ -14,14 +14,18 @@ import (
 )
 
 var (
-	argAppId  string
-	argDebug  bool
-	globalArg = &GlobalArg{}
+	globalArg   = &GlobalArg{}
+	rootCommand = &RootCommand{}
 
 	Log = bdpan.GetLogger()
 )
 
 type GlobalArg struct {
+	IsVerbose bool
+	AppId     string
+}
+
+type RootCommand struct {
 	Dir string
 }
 
@@ -37,7 +41,7 @@ func promptDir(dir string) error {
 		Inactive: " " + printTemple,
 		Selected: "\U0001f449  {{ .GetFileTypeIcon }}  {{ .Path | red | cyan }}",
 		Details: `
---------- File ----------
+--------- Detail ----------
 {{ "FSID:" }}	{{ .FSID }}
 {{ "Name:" }}	{{ .GetFilename }}
 {{ "Filetype:" }}	{{ .GetFileTypeIcon }} {{ .GetFileType }}
@@ -46,6 +50,8 @@ func promptDir(dir string) error {
 {{ "MD5:" }}	{{ .MD5 }}
 {{ "CTime:" }}	{{ .GetServerCTime }}
 {{ "MTime:" }}	{{ .GetServerMTime }}
+{{ "LCTime:" }}	{{ .GetLocalCTime }}
+{{ "LMTime:" }}	{{ .GetLocalMTime }}
 `,
 	}
 
@@ -81,7 +87,7 @@ var rootCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		err = promptDir(globalArg.Dir)
+		err = promptDir(rootCommand.Dir)
 		handleCmdErr(err)
 	},
 }
@@ -93,13 +99,14 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&argAppId, "app-id", "", "指定添加 App Id")
-	rootCmd.PersistentFlags().BoolVarP(&argDebug, "debug", "D", false, "debug 模式")
+	rootCmd.PersistentFlags().StringVar(&globalArg.AppId, "app-id", "", "指定添加 App Id")
+	rootCmd.PersistentFlags().BoolVarP(&globalArg.IsVerbose, "verbose", "v", false, "打印赘余信息")
 
-	rootCmd.PersistentFlags().StringVarP(&globalArg.Dir, "dir", "d", "/", "文件夹")
+	rootCmd.PersistentFlags().StringVarP(&rootCommand.Dir, "dir", "d", "/", "文件夹")
 	// 运行前全局命令
 	cobra.OnInitialize(func() {
-		if argDebug {
+		// 打印 debug 日志
+		if globalArg.IsVerbose {
 			bdpan.SetLogLevel(logrus.DebugLevel)
 		}
 	})

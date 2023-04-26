@@ -26,7 +26,7 @@ type LoginCommand struct {
 
 func (l LoginCommand) buildCredentail() bdpan.Credential {
 	// appId := *l.AppId
-	appId := argAppId
+	appId := globalArg.AppId
 
 	credential := bdpan.Credential{}
 	fmt.Println("请先完善秘钥信息")
@@ -48,7 +48,7 @@ func (l LoginCommand) buildCredentail() bdpan.Credential {
 
 func (l LoginCommand) Run() error {
 	// appId := *l.AppId
-	appId := argAppId
+	appId := globalArg.AppId
 	var err error
 	if appId == "" {
 		_, err = bdpan.GetCredentails()
