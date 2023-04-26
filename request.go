@@ -12,10 +12,16 @@ type UploadFileRequest struct {
 	toPath   string
 	_type    string
 	partseq  int
-	rtype    int32
-	isDir    int32
-	size     int32
-	isSync   bool
+	// rtype
+	// 文件命名策略，默认0
+	// 0 为不重命名，返回冲突
+	// 1 为只要path冲突即重命名
+	// 2 为path冲突且block_list不同才重命名
+	// 3 为覆盖，需要与预上传precreate接口中的rtype保持一致
+	rtype  int32
+	isDir  int32
+	size   int32
+	isSync bool
 }
 
 func NewUploadFileRequest(fromPath, toPath string) *UploadFileRequest {
@@ -37,6 +43,11 @@ func (r UploadFileRequest) ToPath(path string) UploadFileRequest {
 
 func (r UploadFileRequest) Type(typ string) UploadFileRequest {
 	r._type = typ
+	return r
+}
+
+func (r *UploadFileRequest) RType(t int32) *UploadFileRequest {
+	r.rtype = t
 	return r
 }
 

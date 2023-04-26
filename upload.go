@@ -21,7 +21,7 @@ const (
 )
 
 func UploadFile(fromPath, toPath string) (*FileInfoDto, error) {
-	res, err := NewUploadFileRequest(fromPath, toPath).Execute()
+	res, err := NewUploadFileRequest(fromPath, toPath).RType(2).Execute()
 	if err != nil {
 		return nil, err
 	}
