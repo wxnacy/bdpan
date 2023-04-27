@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/wxnacy/go-pretty"
 	"github.com/wxnacy/gotool"
 )
 
@@ -41,15 +42,15 @@ func (s SyncModel) getLogContent() string {
 	return fmt.Sprintf("%s ==> %s %s", s.Local, s.Remote, mode)
 }
 
-func (s SyncModel) BuildPrintData() []bdpan.PrettyData {
-	var data = make([]bdpan.PrettyData, 0)
-	data = append(data, bdpan.PrettyData{
+func (s SyncModel) BuildPretty() []pretty.Field {
+	var data = make([]pretty.Field, 0)
+	data = append(data, pretty.Field{
 		Name:       "ID",
 		Value:      s.ID,
 		IsFillLeft: true})
-	data = append(data, bdpan.PrettyData{Name: "Local", Value: s.Local})
-	data = append(data, bdpan.PrettyData{Name: "Remote", Value: s.Remote})
-	data = append(data, bdpan.PrettyData{Name: "Mode", Value: s.GetMode()})
+	data = append(data, pretty.Field{Name: "Local", Value: s.Local})
+	data = append(data, pretty.Field{Name: "Remote", Value: s.Remote})
+	data = append(data, pretty.Field{Name: "Mode", Value: s.GetMode()})
 	return data
 }
 
@@ -185,11 +186,11 @@ func (s SyncCommand) syncModel(m *SyncModel) error {
 }
 
 func (s SyncCommand) PrintList(models map[string]*SyncModel) {
-	prettyList := make([]bdpan.Pretty, 0)
-	for _, model := range models {
-		prettyList = append(prettyList, model)
+	l := &pretty.List{}
+	for _, f := range models {
+		l.Add(f)
 	}
-	bdpan.PrettyPrintList(bdpan.PrettyList(prettyList))
+	l.Print()
 }
 
 // syncCmd represents the sync command

@@ -8,6 +8,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/wxnacy/go-pretty"
 	"github.com/wxnacy/gotool"
 )
 
@@ -167,30 +168,28 @@ Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
 	_ = tmpl.Execute(buf, f)
 	return buf.String()
 }
-
-func (f FileInfoDto) BuildPrintData() []PrettyData {
-	var data = make([]PrettyData, 0)
-	data = append(data, PrettyData{
+func (f FileInfoDto) BuildPretty() []pretty.Field {
+	var data = make([]pretty.Field, 0)
+	data = append(data, pretty.Field{
 		Name:       "FSID",
 		Value:      strconv.Itoa(int(f.FSID)),
 		IsFillLeft: true})
-	data = append(data, PrettyData{Name: "Name", Value: f.GetFilename()})
-	data = append(data, PrettyData{Name: "Filetype", Value: f.GetFileType()})
-	data = append(data, PrettyData{Name: "Size", Value: f.GetSize()})
-	// data = append(data, PrettyData{Name: "CTime", Value: f.GetServerCTime()})
-	data = append(data, PrettyData{Name: "MTime", Value: f.GetServerMTime()})
-	// data = append(data, PrettyData{Name: "LCTime", Value: f.GetLocalCTime()})
-	data = append(data, PrettyData{Name: "LMTime", Value: f.GetLocalMTime()})
+	data = append(data, pretty.Field{Name: "Name", Value: f.GetFilename()})
+	data = append(data, pretty.Field{Name: "Filetype", Value: f.GetFileType()})
+	data = append(data, pretty.Field{Name: "Size", Value: f.GetSize()})
+	// data = append(data, pretty.Field{Name: "CTime", Value: f.GetServerCTime()})
+	data = append(data, pretty.Field{Name: "MTime", Value: f.GetServerMTime()})
+	// data = append(data, pretty.Field{Name: "LCTime", Value: f.GetLocalCTime()})
+	data = append(data, pretty.Field{Name: "LMTime", Value: f.GetLocalMTime()})
 	return data
 }
 
 func PrintFileInfoList(files []*FileInfoDto) {
-	// return
-	prettyList := make([]Pretty, 0)
+	l := &pretty.List{}
 	for _, f := range files {
-		prettyList = append(prettyList, f)
+		l.Add(f)
 	}
-	PrettyPrintList(PrettyList(prettyList))
+	l.Print()
 }
 
 type UserInfoDto struct {
