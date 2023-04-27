@@ -62,7 +62,9 @@ func (d *Downloader) DownloadFile(file *FileInfoDto, to string) error {
 func getToFilePath(from, to string) (string, error) {
 	var path string
 	if common.DirExists(to) {
+		// 只给目标目录时，自动指定保存名并处理重名问题
 		path = filepath.Join(to, filepath.Base(from))
+		path = AutoReDownloadName(path)
 	} else {
 		toDir := filepath.Dir(to)
 		if !common.DirExists(toDir) {

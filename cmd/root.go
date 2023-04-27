@@ -235,7 +235,9 @@ func (r *RootCommand) handleAction(action FileAction) error {
 		return r.viewCurrDir(file)
 	case ActionDownload:
 		dler := &bdpan.Downloader{}
-		err := dler.DownloadFile(file, bdpan.JoinDownload(file.GetFilename()))
+		// 下载时进行重名处理
+		to := bdpan.AutoReDownloadName(bdpan.JoinDownload(file.GetFilename()))
+		err := dler.DownloadFile(file, to)
 		if err != nil {
 			return err
 		}
