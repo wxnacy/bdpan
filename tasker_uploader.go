@@ -15,7 +15,8 @@ import (
 func TaskUploadDir(from, to string, isSync bool, isRecursion bool, isIncludeHide bool) error {
 	// 获取准确上传目录
 	toFile, err := GetFileByPath(to)
-	if err != nil && !strings.Contains(err.Error(), "找不到") {
+	// 目标不存在时不会报错
+	if err != nil && err != ErrPathNotFound {
 		return err
 	}
 	if toFile != nil {
