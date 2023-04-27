@@ -1,34 +1,33 @@
 package bdpan
 
 import (
-	"fmt"
-	"path/filepath"
-	"runtime"
-
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	Log *logrus.Entry
+	Log *logrus.Logger
 )
 
-func init() {
+func initLogger() {
+	GetLogger()
+}
+
+func createLogger() *logrus.Logger {
 	log := logrus.New()
-	log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 	log.SetFormatter(&LogFormatter{
 		TextFormatter: &logrus.TextFormatter{
 			ForceColors:     true,
 			FullTimestamp:   true,
 			TimestampFormat: "01-02 15:04:05",
-			CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
-
-				filename := filepath.Base(frame.File)
-				return "", fmt.Sprintf("[%s:%d]", filename, frame.Line)
-
-			},
+			// CallerPrettyfier: func(frame *runtime.Frame) (function string, file string) {
+			// filename := filepath.Base(frame.File)
+			// return "", fmt.Sprintf("[%s:%d]", filename, frame.Line)
+			// },
 		},
 	})
-	Log = log.WithFields(logrus.Fields{})
+	Log = log
+	return log
 }
 
 type LogFormatter struct {
@@ -40,5 +39,12 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 func SetLogLevel(level logrus.Level) {
-	Log.Logger.SetLevel(level)
+	Log.SetLevel(level)
+}
+
+func GetLogger() *logrus.Logger {
+	if Log == nil {
+		Log = createLogger()
+	}
+	return Log
 }
