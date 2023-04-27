@@ -85,6 +85,7 @@ type SyncCommand struct {
 	Local    string
 	IsBackup bool // 是否为备份
 	HasHide  bool
+	IsOnce   bool
 
 	IsCmdAdd  bool
 	IsCmdDel  bool
@@ -97,6 +98,12 @@ func (s SyncCommand) getModels() (m map[string]*SyncModel) {
 		m = make(map[string]*SyncModel)
 	}
 	return
+}
+
+func (s SyncCommand) getModel(id string) (*SyncModel, bool) {
+	models := s.getModels()
+	m, exits := models[id]
+	return m, exits
 }
 
 func (s SyncCommand) Run() error {
@@ -138,13 +145,26 @@ func (s SyncCommand) Run() error {
 	} else {
 		// 执行同步操作
 		fmt.Println("开始进行同步操作")
+		models := map[string]*SyncModel{}
+		if s.ID == "" {
+			models = s.getModels()
+		} else {
+			model, ok := s.getModel(s.ID)
+			if ok {
+				models[s.ID] = model
+			} else {
+				return fmt.Errorf("ID: %s 同步任务不存在", s.ID)
+			}
+		}
 		for {
-			models := s.getModels()
 			for _, m := range models {
 				err := s.syncModel(m)
 				if err != nil {
 					Log.Errorf("%s 同步报错: %v\n", m.getLogContent(), err)
 				}
+			}
+			if s.IsOnce {
+				break
 			}
 			time.Sleep(5 * time.Second)
 		}
@@ -188,6 +208,7 @@ func init() {
 	syncCmd.Flags().StringVarP(&syncCommand.Remote, "remote", "r", "", "远程文件夹")
 	syncCmd.Flags().StringVarP(&syncCommand.Local, "local", "l", "", "本地文件夹")
 	syncCmd.Flags().BoolVarP(&syncCommand.HasHide, "hide", "H", false, "是否包含隐藏文件")
+	syncCmd.Flags().BoolVarP(&syncCommand.IsOnce, "once", "o", false, "是否执行单次")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsBackup, "backup", "", false, "是否为备份目录")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdAdd, "add", "", false, "添加同步目录")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdDel, "delete", "", false, "删除同步目录")
