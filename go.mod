@@ -11,6 +11,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/wxnacy/go-pretty v0.0.1
 	github.com/wxnacy/go-tasker v0.0.5
+	github.com/wxnacy/go-tools v0.0.6
 	github.com/wxnacy/gotool v0.0.4
 )
 
