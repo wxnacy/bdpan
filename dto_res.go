@@ -155,7 +155,7 @@ func (f FileInfoDto) GetPretty() string {
 	tpl := `    FSID: {{.FSID}}
     Name: {{.GetFilename}}
 Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
-    Size: {{.GetSize}}
+    Size: {{.GetSize}}({{.Size}})
     Path: {{.Path}}
      MD5: {{.MD5}}
    CTime: {{.GetServerCTime}}
