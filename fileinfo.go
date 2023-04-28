@@ -130,7 +130,7 @@ func GetFileByPath(path string) (*FileInfoDto, error) {
 			return f, nil
 		}
 	}
-	return nil, fmt.Errorf("%s 找不到", path)
+	return nil, ErrPathNotFound
 }
 
 // https://pan.baidu.com/union/doc/zksg0sb9z

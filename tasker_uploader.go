@@ -177,19 +177,22 @@ func (u *UploadFragmentTasker) BuildTasks() error {
 
 func (u UploadFragmentTasker) RunTask(task *tasker.Task) error {
 
+	after := func(from string) {
+		if strings.HasPrefix(from, u.TmpDir) {
+			os.Remove(from)
+		}
+	}
+
 	info := task.Info.(UFTaskInfo)
 	from := info.From
 	file, _ := os.Open(from)
-	// TODO: defer 顺序
+	defer after(from)
 	defer file.Close()
 	// 分片上传 https://pan.baidu.com/union/doc/nksg0s9vi
 	_, r, err := GetClient().FileuploadApi.Pcssuperfile2(
 		context.Background()).AccessToken(u.Token.AccessToken).Partseq(
 		strconv.Itoa(info.Index)).Path(
 		u.To).Uploadid(u.UploadId).Type_(u.Request._type).File(file).Execute()
-	if strings.HasPrefix(from, u.TmpDir) {
-		os.Remove(from)
-	}
 	Log.Debugf("Pcssuperfile2 path: %s", from)
 	Log.Debugf("Pcssuperfile2 resp: %v", r)
 	Log.Debugf("Pcssuperfile2 error: %v", err)

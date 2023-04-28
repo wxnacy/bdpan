@@ -44,7 +44,7 @@ func (u UploadCommand) Run() error {
 	if common.FileExists(from) {
 		// 获取准确上传地址
 		toFile, err := bdpan.GetFileByPath(to)
-		if err != nil && !strings.Contains(err.Error(), "找不到") {
+		if err != nil && err != bdpan.ErrPathNotFound {
 			return err
 		}
 		if toFile == nil {
