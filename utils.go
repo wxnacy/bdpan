@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/wxnacy/gotool"
 )
@@ -145,4 +147,9 @@ func AutoReDownloadName(path string) string {
 		i++
 	}
 	return path
+}
+
+func genId() string {
+	rand.Seed(time.Now().UnixNano())
+	return gotool.Md5(time.Now().String() + strconv.Itoa(rand.Intn(10000)))
 }
