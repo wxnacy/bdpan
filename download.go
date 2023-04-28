@@ -4,7 +4,6 @@ import (
 	"bdpan/common"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 )
 
@@ -61,8 +60,6 @@ func (d *Downloader) DownloadFile(file *FileInfoDto, to string) error {
 		for _, t := range errTasks {
 			Log.Errorf("task %v: %v", t.Info, t.Err)
 		}
-		// 确保报错时也删除临时文件
-		os.RemoveAll(t.cacheDir)
 		return err
 	}
 	if !d.DisableLog {

@@ -171,6 +171,7 @@ func (d *DownloadUrlTasker) Build() error {
 func (d *DownloadUrlTasker) AfterRun() error {
 	// 写入总文件
 	writeFile, err := os.OpenFile(d.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, common.PermFile)
+	defer os.RemoveAll(d.cacheDir)
 	defer writeFile.Close()
 	if err != nil {
 		return err
@@ -188,7 +189,7 @@ func (d *DownloadUrlTasker) AfterRun() error {
 		tempFile.Close()
 		os.Remove(info.tempPath)
 	}
-	return os.RemoveAll(d.cacheDir)
+	return nil
 }
 
 func (d *DownloadUrlTasker) BuildTasks() error {
