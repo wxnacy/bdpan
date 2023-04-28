@@ -1,6 +1,7 @@
 package bdpan
 
 import (
+	"os"
 	"strings"
 )
 
@@ -37,4 +38,8 @@ func getFileInfos(dir string, isRecursion bool) ([]FileInfoDto, error) {
 		}
 	}
 	return resFiles, nil
+}
+
+func CleanCache() error {
+	return os.RemoveAll(cacheDir)
 }
