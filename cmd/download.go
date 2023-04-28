@@ -47,7 +47,7 @@ func (d DownloadCommand) Run() error {
 	if file.IsDir() {
 		err = bdpan.TaskDownloadDir(file, to, d.IsSync)
 	} else {
-		dler := &bdpan.Downloader{}
+		dler := &bdpan.Downloader{UseProgressBar: true}
 		err = dler.DownloadFile(file, to)
 	}
 	if err != nil {

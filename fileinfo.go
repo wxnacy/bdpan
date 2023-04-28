@@ -151,26 +151,31 @@ func fileSearch(req FileSearchRequest) (*FileListResponse, error) {
 	return NewFileListResponse(r)
 }
 
-func GetFileBytes(fsid uint64) ([]byte, error) {
+func GetFileDLink(fsid uint64) (string, error) {
 	fileDto, err := GetFileByFSID(fsid)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	token, err := GetConfigAccessToken()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	uri := fmt.Sprintf("%s&access_token=%s", fileDto.Dlink, token.AccessToken)
+	return fmt.Sprintf("%s&access_token=%s", fileDto.Dlink, token.AccessToken), nil
+}
+
+func GetUriBytes(uri string, rangeStart, rangeEnd int) ([]byte, error) {
 	headers := map[string]string{
 		"User-Agent": "pan.baidu.com",
+		"Host":       "d.pcs.baidu.com",
+		"Range":      fmt.Sprintf("bytes=%d-%d", rangeStart, rangeEnd),
 	}
 	var postBody io.Reader
 	body, statusCode, err := Do2HTTPRequestToBytes(uri, postBody, headers)
 	if err != nil {
 		return nil, err
 	}
-	if statusCode != 200 {
-		return nil, errors.New("get bytes failed")
+	if statusCode > 300 {
+		return nil, fmt.Errorf("get bytes failed: %d %s", statusCode, string(body))
 	}
 	return body, nil
 }

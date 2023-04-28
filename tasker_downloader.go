@@ -3,10 +3,12 @@ package bdpan
 import (
 	"bdpan/common"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/wxnacy/go-tasker"
+	"github.com/wxnacy/gotool"
 )
 
 func TaskDownloadDir(file *FileInfoDto, to string, isSync bool) error {
@@ -128,4 +130,102 @@ func (m *DownloadTasker) BeforeRun() error {
 
 func (m *DownloadTasker) Exec() error {
 	return tasker.ExecTasker(m, m.IsSync)
+}
+
+type DownloadUrlTaskInfo struct {
+	index      int
+	rangeStart int
+	rangeEnd   int
+	tempPath   string
+}
+
+func NewDownloadUrlTasker(url, path string) *DownloadUrlTasker {
+	t := tasker.NewTasker()
+	return &DownloadUrlTasker{
+		Tasker:      t,
+		url:         url,
+		path:        path,
+		segmentSize: 8 * (1 << 20), // 单个分片大小
+	}
+}
+
+type DownloadUrlTasker struct {
+	*tasker.Tasker
+	// 迁移的地址
+	url           string
+	path          string
+	contentLength int
+	segmentSize   int
+	to            string
+	isSync        bool // 是否同步执行
+	cacheDir      string
+	id            string
+}
+
+func (d *DownloadUrlTasker) Build() error {
+	d.id = genId()
+	d.cacheDir = filepath.Join(cacheDir, "download", d.id)
+	return nil
+}
+
+func (d *DownloadUrlTasker) AfterRun() error {
+	// 写入总文件
+	writeFile, err := os.OpenFile(d.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, common.PermFile)
+	defer writeFile.Close()
+	if err != nil {
+		return err
+	}
+	for _, task := range d.GetTasks() {
+		info := task.Info.(DownloadUrlTaskInfo)
+		tempFile, err := os.Open(info.tempPath)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(writeFile, tempFile)
+		if err != nil {
+			return err
+		}
+		tempFile.Close()
+		os.Remove(info.tempPath)
+	}
+	return os.RemoveAll(d.cacheDir)
+}
+
+func (d *DownloadUrlTasker) BuildTasks() error {
+	length := d.contentLength
+	page := int(length/d.segmentSize) + 1
+	for i := 0; i < page; i++ {
+		info := DownloadUrlTaskInfo{
+			index:      i,
+			rangeStart: i * d.segmentSize,
+			rangeEnd:   (i+1)*d.segmentSize - 1,
+			tempPath:   filepath.Join(d.cacheDir, fmt.Sprintf("%s-%d", d.id, i)),
+		}
+		d.AddTask(&tasker.Task{Info: info})
+		if info.rangeStart >= length {
+			break
+		}
+		if info.rangeEnd >= length {
+			info.rangeEnd = length - 1
+		}
+	}
+	return nil
+}
+
+func (d DownloadUrlTasker) RunTask(task *tasker.Task) error {
+	info := task.Info.(DownloadUrlTaskInfo)
+	bytes, err := GetUriBytes(d.url, info.rangeStart, info.rangeEnd)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(info.tempPath, bytes, common.PermFile)
+}
+
+func (d *DownloadUrlTasker) BeforeRun() error {
+	gotool.DirExistsOrCreate(d.cacheDir)
+	return nil
+}
+
+func (d *DownloadUrlTasker) Exec() error {
+	return tasker.ExecTasker(d, d.isSync)
 }

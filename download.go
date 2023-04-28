@@ -9,9 +9,10 @@ import (
 )
 
 type Downloader struct {
-	File       *FileInfoDto
-	To         string
-	DisableLog bool
+	File           *FileInfoDto
+	To             string
+	DisableLog     bool
+	UseProgressBar bool
 }
 
 func (d *Downloader) Exec() error {
@@ -41,16 +42,27 @@ func (d *Downloader) DownloadFile(file *FileInfoDto, to string) error {
 	if !d.DisableLog {
 		Log.Infof("获取文件内容: %s", from)
 	}
-	bytes, err := GetFileBytes(file.FSID)
-	if err != nil {
-		return err
-	}
 
 	if !d.DisableLog {
 		Log.Infof("开始写入文件: %s", path)
 	}
-	err = os.WriteFile(path, bytes, common.PermFile)
+	dlink, err := GetFileDLink(file.FSID)
+	Log.Debugf("%s DLink: %s", file.Path, dlink)
 	if err != nil {
+		return err
+	}
+	t := NewDownloadUrlTasker(dlink, path)
+	t.contentLength = file.Size
+	t.Config.UseProgressBar = d.UseProgressBar
+	err = t.Exec()
+	if err != nil {
+		// 将具体任务错误信息打印
+		errTasks := t.GetErrorTasks()
+		for _, t := range errTasks {
+			Log.Errorf("task %v: %v", t.Info, t.Err)
+		}
+		// 确保报错时也删除临时文件
+		os.RemoveAll(t.cacheDir)
 		return err
 	}
 	if !d.DisableLog {
