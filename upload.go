@@ -5,11 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"math/rand"
 	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/gotool"
@@ -51,8 +47,7 @@ func uploadFile(req UploadFileRequest) (*UploadFileResponse, error) {
 	size := fileInfo.Size()
 	localCTime, localMTime := common.GetFileInfoTimes(fileInfo)
 	// 创建临时目录
-	rand.Seed(time.Now().UnixNano())
-	tmpdir := filepath.Join(cacheDir, fmt.Sprintf("upload_tmp_%d", rand.Intn(1000)))
+	tmpdir := JoinCache("upload", genId())
 	gotool.DirExistsOrCreate(tmpdir)
 	// 分割文件
 	paths, err := SplitFile(fromPath, tmpdir, FRAGMENT_MAX_SIZE)
