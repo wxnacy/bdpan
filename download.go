@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+
+	"github.com/wxnacy/go-tools"
 )
 
 type Downloader struct {
@@ -73,7 +75,7 @@ func getToFilePath(from, to string) (string, error) {
 	if common.DirExists(to) {
 		// 只给目标目录时，自动指定保存名并处理重名问题
 		path = filepath.Join(to, filepath.Base(from))
-		path = AutoReDownloadName(path)
+		path = tools.FileAutoReDownloadName(path)
 	} else {
 		toDir := filepath.Dir(to)
 		if !common.DirExists(toDir) {

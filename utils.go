@@ -4,7 +4,6 @@ import (
 	"bdpan/common"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -12,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/wxnacy/gotool"
@@ -128,25 +126,6 @@ func panicErr(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-// 自动对下载地址进行重命名
-func AutoReDownloadName(path string) string {
-	if !gotool.FileExists(path) {
-		return path
-	}
-	// dir := filepath.Dir(path)
-	i := 1
-	for true {
-		ext := filepath.Ext(path)
-		prefix := strings.TrimRight(path, ext)
-		newPath := fmt.Sprintf("%s(%d)%s", prefix, i, ext)
-		if !gotool.FileExists(newPath) {
-			return newPath
-		}
-		i++
-	}
-	return path
 }
 
 func genId() string {
