@@ -108,7 +108,8 @@ type FileAction struct {
 }
 
 type RootCommand struct {
-	Path string
+	Path  string
+	Limit int
 }
 
 func (r *RootCommand) Run() error {
@@ -200,7 +201,7 @@ func (r *RootCommand) promptSelect(
 		Label:        label,
 		Items:        actions,
 		Templates:    templates,
-		Size:         10,
+		Size:         r.Limit,
 		IsVimMode:    true,
 		HideSelected: true, // 隐藏选择后输出的内容
 	}
@@ -272,10 +273,13 @@ func Execute() {
 }
 
 func init() {
+	// 全局参数
 	rootCmd.PersistentFlags().StringVar(&globalArg.AppId, "app-id", "", "指定添加 App Id")
 	rootCmd.PersistentFlags().BoolVarP(&globalArg.IsVerbose, "verbose", "v", false, "打印赘余信息")
 
+	// root 参数
 	rootCmd.PersistentFlags().StringVarP(&rootCommand.Path, "path", "p", "/", "直接查看文件")
+	rootCmd.PersistentFlags().IntVarP(&rootCommand.Limit, "limit", "l", 10, "查询数目")
 	// 运行前全局命令
 	cobra.OnInitialize(func() {
 		// 打印 debug 日志
