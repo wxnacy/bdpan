@@ -48,3 +48,7 @@ func GetLogger() *logrus.Logger {
 	}
 	return Log
 }
+
+func IsLoggerDebug() bool {
+	return Log.GetLevel() == logrus.DebugLevel
+}
