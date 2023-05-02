@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/wxnacy/go-tasker"
+	"github.com/wxnacy/go-tools"
 )
 
 func TaskUploadDir(from, to string, isSync bool, isRecursion bool, isIncludeHide bool) error {
@@ -40,17 +42,24 @@ type UploadTaskInfo struct {
 	To   string
 }
 
-type UploadTasker struct {
-	*tasker.Tasker
-	// 迁移的地址
-	From          string
-	To            string
-	IsSync        bool
-	IsRecursion   bool // 是否递归子文件夹文件
-	IsIncludeHide bool // 是否上传隐藏文件
-
-	existFileMap map[string]FileInfoDto
-	toDir        string
+func NewUploadDirTasker(from, to string) (*UploadTasker, error) {
+	// 获取准确上传目录
+	toFile, err := GetFileByPath(to)
+	// 目标不存在时不会报错
+	if err != nil && err != ErrPathNotFound {
+		return nil, err
+	}
+	if toFile != nil {
+		if toFile.IsDir() {
+			fromBaseName := filepath.Base(from)
+			to = filepath.Join(to, fromBaseName)
+		} else {
+			return nil, fmt.Errorf("%s 已存在", to)
+		}
+	}
+	// 构建上传任务
+	t := NewUploadTasker(from, to)
+	return t, nil
 }
 
 func NewUploadTasker(from, to string) *UploadTasker {
@@ -66,38 +75,55 @@ func NewUploadTasker(from, to string) *UploadTasker {
 	return &t
 }
 
+type UploadTasker struct {
+	*tasker.Tasker
+	// 迁移的地址
+	From          string
+	To            string
+	IsSync        bool
+	IsRecursion   bool // 是否递归子文件夹文件
+	IsIncludeHide bool // 是否上传隐藏文件
+	regexp        string
+
+	existFileMap map[string]FileInfoDto
+	toDir        string
+}
+
+func (u *UploadTasker) SetRegexp(pattern string) *UploadTasker {
+	u.regexp = pattern
+	return u
+}
+
 func (m *UploadTasker) AfterRun() error {
 	return nil
 }
 
 func (m *UploadTasker) BuildTasks() error {
 	var err error
-	err = filepath.Walk(m.From,
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			// 不处理文件夹
-			if info.IsDir() {
-				return nil
-			}
-			dirName := filepath.Base(filepath.Dir(path))
-			// 判断是否处理隐藏文件
-			if (strings.HasPrefix(info.Name(), ".") || strings.HasPrefix(dirName, ".")) && !m.IsIncludeHide {
-				return nil
-			}
-			// 判断是否递归处理
-			if path != filepath.Join(m.From, info.Name()) && !m.IsRecursion {
-				return nil
-			}
+	filter := tools.NewFileFilter(m.From, func(paths []string) error {
+		for _, path := range paths {
 			from := path
 			subDir := m.getSubDir(path)
+			info, _ := os.Stat(path)
 			to := filepath.Join(m.toDir, subDir, info.Name())
 			taskInfo := UploadTaskInfo{From: from, To: to}
 			Log.Debugf("add Task: %#v", taskInfo)
 			m.AddTask(&tasker.Task{Info: taskInfo})
-			return nil
-		})
+		}
+		return nil
+	})
+	if m.IsIncludeHide {
+		filter.WithHide()
+	}
+	if m.IsRecursion {
+		filter.EnableRecursion()
+	}
+	if m.regexp != "" {
+		filter.SetFilter(func(path string, info os.FileInfo, err error) (bool, error) {
+			return regexp.MatchString(m.regexp, path)
+		}).EnableConfirm()
+	}
+	err = filter.Run()
 	Log.Debugf("BuildTasks error: %v", err)
 	return err
 }
