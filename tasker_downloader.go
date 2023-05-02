@@ -3,11 +3,11 @@ package bdpan
 import (
 	"bdpan/common"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/wxnacy/go-tasker"
+	"github.com/wxnacy/go-tools"
 	"github.com/wxnacy/gotool"
 )
 
@@ -170,26 +170,13 @@ func (d *DownloadUrlTasker) Build() error {
 
 func (d *DownloadUrlTasker) AfterRun() error {
 	// 写入总文件
-	writeFile, err := os.OpenFile(d.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, common.PermFile)
 	defer os.RemoveAll(d.cacheDir)
-	defer writeFile.Close()
-	if err != nil {
-		return err
-	}
+	sources := make([]string, 0)
 	for _, task := range d.GetTasks() {
 		info := task.Info.(DownloadUrlTaskInfo)
-		tempFile, err := os.Open(info.tempPath)
-		if err != nil {
-			return err
-		}
-		_, err = io.Copy(writeFile, tempFile)
-		if err != nil {
-			return err
-		}
-		tempFile.Close()
-		os.Remove(info.tempPath)
+		sources = append(sources, info.tempPath)
 	}
-	return nil
+	return tools.FilesMerge(d.path, sources, tools.PermFile)
 }
 
 func (d *DownloadUrlTasker) BuildTasks() error {
