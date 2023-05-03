@@ -7,6 +7,9 @@ package cmd
 import (
 	"bdpan"
 	"fmt"
+	"io"
+	"os"
+	"sort"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -26,12 +29,35 @@ const (
 	ModeSync
 )
 
+type SyncModelSlice []*SyncModel
+
+func (s SyncModelSlice) GetWriter() io.Writer {
+	return os.Stdout
+}
+
+func (s SyncModelSlice) List() []pretty.Pretty {
+	slice := make([]pretty.Pretty, 0)
+	for _, v := range s {
+		slice = append(slice, v)
+	}
+	return slice
+}
+
+func (s SyncModelSlice) Len() int {
+	return len(s)
+}
+
+func (s SyncModelSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+func (s SyncModelSlice) Less(i, j int) bool { return s[i].CreateTime.Before(s[j].CreateTime) }
+
 type SyncModel struct {
-	ID     string
-	Remote string
-	Local  string
-	Hash   string
-	Mode   SyncMode
+	ID         string
+	Remote     string
+	Local      string
+	Hash       string
+	Mode       SyncMode
+	CreateTime time.Time
 }
 
 func (s SyncModel) getLogContent() string {
@@ -51,6 +77,7 @@ func (s SyncModel) BuildPretty() []pretty.Field {
 	data = append(data, pretty.Field{Name: "Local", Value: s.Local})
 	data = append(data, pretty.Field{Name: "Remote", Value: s.Remote})
 	data = append(data, pretty.Field{Name: "Mode", Value: s.GetMode()})
+	data = append(data, pretty.Field{Name: "CreateTime", Value: s.CreateTime.Format("2006-01-02 15:04:05")})
 	return data
 }
 
@@ -116,9 +143,10 @@ func (s SyncCommand) Run() error {
 		}
 
 		model := &SyncModel{
-			Remote: s.Remote,
-			Local:  s.Local,
-			Mode:   mode,
+			Remote:     s.Remote,
+			Local:      s.Local,
+			Mode:       mode,
+			CreateTime: time.Now(),
 		}
 		model.BuildID()
 		Log.Debugf("add model: %#v", model)
@@ -186,11 +214,13 @@ func (s SyncCommand) syncModel(m *SyncModel) error {
 }
 
 func (s SyncCommand) PrintList(models map[string]*SyncModel) {
-	l := &pretty.List{}
+	modelSlice := make([]*SyncModel, 0)
 	for _, f := range models {
-		l.Add(f)
+		modelSlice = append(modelSlice, f)
 	}
-	l.Print()
+	slice := SyncModelSlice(modelSlice)
+	sort.Sort(slice)
+	pretty.PrintList(slice)
 }
 
 // syncCmd represents the sync command
@@ -207,7 +237,7 @@ var syncCmd = &cobra.Command{
 func init() {
 	syncCmd.Flags().StringVarP(&syncCommand.ID, "id", "", "", "任务 id")
 	syncCmd.Flags().StringVarP(&syncCommand.Remote, "remote", "r", "", "远程文件夹")
-	syncCmd.Flags().StringVarP(&syncCommand.Local, "local", "l", "", "本地文件夹")
+	syncCmd.Flags().StringVarP(&syncCommand.Local, "local", "L", "", "本地文件夹")
 	syncCmd.Flags().BoolVarP(&syncCommand.HasHide, "hide", "H", false, "是否包含隐藏文件")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsOnce, "once", "o", false, "是否执行单次")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsBackup, "backup", "", false, "是否为备份目录")
