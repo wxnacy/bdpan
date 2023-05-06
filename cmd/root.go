@@ -257,9 +257,10 @@ func (r *RootCommand) handleAction(action FileAction) error {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "bdpan",
-	Short: "百度网盘命令行工具",
-	Long:  ``,
+	Use:     "bdpan",
+	Short:   "百度网盘命令行工具",
+	Long:    ``,
+	Version: "0.2.1",
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		err = rootCommand.Run()
