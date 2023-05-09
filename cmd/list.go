@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/wxnacy/gotool/arrays"
+	"github.com/wxnacy/go-tools"
 )
 
 var (
@@ -75,7 +75,7 @@ func runList(cmd *cobra.Command, args []string) error {
 }
 
 func validArgs(cmd *cobra.Command, args []string) error {
-	if !arrays.StringContains(ORDERS, listCommand.Order) {
+	if !tools.ArrayContainsString(ORDERS, listCommand.Order) {
 		return errors.New(fmt.Sprintf("order: %s not in %v", listCommand.Order, ORDERS))
 	}
 	return nil

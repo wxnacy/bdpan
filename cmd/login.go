@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/wxnacy/gotool"
+	"github.com/wxnacy/go-tools"
 )
 
 func runLogin(cmd *cobra.Command, args []string) error {
@@ -97,8 +97,7 @@ func (l LoginCommand) Run() error {
 		fmt.Fprintf(os.Stderr, "获取网盘信息失败 %s\n", err.Error())
 		return err
 	}
-	fmt.Printf("网盘容量 %s/%s\n", gotool.FormatSize(pan.GetUsed()), gotool.FormatSize(pan.GetTotal()))
-	// fmt.Printf("网盘总容量 %d", pan.GetTotal())
+	fmt.Printf("网盘容量 %d(%s/%s)\n", pan.GetUsed(), tools.FormatSize(pan.GetUsed()), tools.FormatSize(pan.GetTotal()))
 	return nil
 }
 
