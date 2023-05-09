@@ -8,21 +8,29 @@ import (
 
 	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/go-tools"
-	"github.com/wxnacy/gotool"
 )
 
-func TaskDownloadDir(file *FileInfoDto, to string, isSync bool) error {
-	t := NewDownloadTasker(to)
-	t.FromFile = file
-	t.IsSync = isSync
-	err := t.Exec()
-	if err != nil {
-		return err
+// func TaskDownloadDir(file *FileInfoDto, to string, isSync bool) error {
+// t := NewDownloadTasker(to)
+// t.FromFile = file
+// t.IsSync = isSync
+// err := t.Exec()
+// if err != nil {
+// return err
+// }
+// total := len(t.GetTasks())
+// succ := total - len(t.GetErrorTasks())
+// Log.Infof("下载完成: %d/%d", succ, total)
+// return nil
+// }
+
+func NewDownloadTasker(file *FileInfoDto) *DownloadTasker {
+	t := DownloadTasker{
+		Tasker:   tasker.NewTasker(),
+		FromFile: file,
+		dler:     NewDownloader(),
 	}
-	total := len(t.GetTasks())
-	succ := total - len(t.GetErrorTasks())
-	Log.Infof("下载完成: %d/%d", succ, total)
-	return nil
+	return &t
 }
 
 type DownloadTaskInfo struct {
@@ -31,24 +39,41 @@ type DownloadTaskInfo struct {
 	To       string
 }
 
-func NewDownloadTasker(to string) *DownloadTasker {
-	t := DownloadTasker{Tasker: tasker.NewTasker()}
-	t.To = to
-	return &t
-}
-
 type DownloadTasker struct {
 	*tasker.Tasker
 	// 迁移的地址
 	From     string
 	FromFile *FileInfoDto
 	Froms    []string
-	To       string
-	IsSync   bool // 是否同步执行
+	// To       string
+	Path   string
+	Dir    string
+	IsSync bool // 是否同步执行
 
 	fromDir string      // 文件夹地址
 	toDir   string      // 真实的保存目录
 	dler    *Downloader // 下载器
+	logFile *os.File
+}
+
+func (d *DownloadTasker) buildToDir() error {
+	if d.Path != "" {
+		d.toDir = d.Path
+	} else {
+		if d.Dir == "" {
+			pwd, _ := os.Getwd()
+			d.Dir = pwd
+		}
+		d.toDir = filepath.Join(d.Dir, filepath.Base(d.FromFile.Path))
+	}
+
+	if !tools.PathDirExists(d.toDir) {
+		return fmt.Errorf("%s 目录不存在", d.toDir)
+	}
+	if tools.FileExists(d.toDir) {
+		return fmt.Errorf("%s 是已存在的文件", d.toDir)
+	}
+	return tools.DirExistsOrCreate(d.toDir)
 }
 
 func (m *DownloadTasker) Build() error {
@@ -65,18 +90,18 @@ func (m *DownloadTasker) Build() error {
 			// 判定下载来源是否为文件夹
 			m.fromDir = m.FromFile.Path
 		}
-		if common.DirExists(filepath.Dir(m.To)) && !common.DirExists(m.To) {
-			err := os.Mkdir(m.To, common.PermDir)
-			if err != nil {
-				return err
-			}
-			m.toDir = m.To
-		} else {
-			m.toDir = filepath.Join(m.To, filepath.Base(m.From))
+		err := m.buildToDir()
+		if err != nil {
+			return err
 		}
 	}
-
-	m.dler = &Downloader{}
+	m.dler.Dir = m.toDir
+	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	m.dler.Out = logFile
+	m.logFile = logFile
 	return nil
 }
 
@@ -96,6 +121,7 @@ func (m *DownloadTasker) BuildTasks() error {
 				continue
 			}
 			to := filepath.Join(m.toDir, f.GetFilename())
+			// FIX: 需要修改 to
 			info := DownloadTaskInfo{FromFile: f, To: to}
 			m.AddTask(&tasker.Task{Info: info})
 		}
@@ -105,13 +131,11 @@ func (m *DownloadTasker) BuildTasks() error {
 
 func (m DownloadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(DownloadTaskInfo)
-	return m.dler.DownloadFile(info.FromFile, info.To)
+	m.dler.Path = info.To
+	return m.dler.DownloadFile(info.FromFile, "")
 }
 
 func (m *DownloadTasker) BeforeRun() error {
-	if !common.DirExists(m.To) {
-		return fmt.Errorf("%s 目录不存在", m.To)
-	}
 	if !common.DirExists(m.toDir) {
 		Log.Debugf("创建目录: %s", m.toDir)
 		err := os.Mkdir(m.toDir, common.PermDir)
@@ -129,91 +153,6 @@ func (m *DownloadTasker) BeforeRun() error {
 }
 
 func (m *DownloadTasker) Exec() error {
+	defer m.logFile.Close()
 	return tasker.ExecTasker(m, m.IsSync)
-}
-
-type DownloadUrlTaskInfo struct {
-	index      int
-	rangeStart int
-	rangeEnd   int
-	tempPath   string
-}
-
-func NewDownloadUrlTasker(url, path string) *DownloadUrlTasker {
-	t := tasker.NewTasker()
-	return &DownloadUrlTasker{
-		Tasker:      t,
-		url:         url,
-		path:        path,
-		segmentSize: 8 * (1 << 20), // 单个分片大小
-	}
-}
-
-type DownloadUrlTasker struct {
-	*tasker.Tasker
-	// 迁移的地址
-	url           string
-	path          string
-	contentLength int
-	segmentSize   int
-	to            string
-	isSync        bool // 是否同步执行
-	cacheDir      string
-	id            string
-}
-
-func (d *DownloadUrlTasker) Build() error {
-	d.id = genId()
-	d.cacheDir = filepath.Join(cacheDir, "download", d.id)
-	return nil
-}
-
-func (d *DownloadUrlTasker) AfterRun() error {
-	// 写入总文件
-	defer os.RemoveAll(d.cacheDir)
-	sources := make([]string, 0)
-	for _, task := range d.GetTasks() {
-		info := task.Info.(DownloadUrlTaskInfo)
-		sources = append(sources, info.tempPath)
-	}
-	return tools.FilesMerge(d.path, sources, tools.PermFile)
-}
-
-func (d *DownloadUrlTasker) BuildTasks() error {
-	length := d.contentLength
-	page := int(length/d.segmentSize) + 1
-	for i := 0; i < page; i++ {
-		info := DownloadUrlTaskInfo{
-			index:      i,
-			rangeStart: i * d.segmentSize,
-			rangeEnd:   (i+1)*d.segmentSize - 1,
-			tempPath:   filepath.Join(d.cacheDir, fmt.Sprintf("%s-%d", d.id, i)),
-		}
-		d.AddTask(&tasker.Task{Info: info})
-		if info.rangeStart >= length {
-			break
-		}
-		if info.rangeEnd >= length {
-			info.rangeEnd = length - 1
-		}
-	}
-	return nil
-}
-
-func (d DownloadUrlTasker) RunTask(task *tasker.Task) error {
-	info := task.Info.(DownloadUrlTaskInfo)
-	bytes, err := GetUriBytes(d.url, info.rangeStart, info.rangeEnd)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(info.tempPath, bytes, common.PermFile)
-}
-
-func (d *DownloadUrlTasker) BeforeRun() error {
-	gotool.DirExistsOrCreate(d.cacheDir)
-	return nil
-}
-
-func (d *DownloadUrlTasker) Exec() error {
-	return tasker.ExecTasker(d, d.isSync)
 }

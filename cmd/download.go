@@ -6,8 +6,8 @@ package cmd
 
 import (
 	"bdpan"
+	"os"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
@@ -18,26 +18,24 @@ var (
 func NewDownloadCommand(c *cobra.Command) *DownloadCommand {
 	cmd := &DownloadCommand{}
 
-	c.Flags().StringVarP(&cmd.From, "from", "f", "", "网盘文件地址")
-	c.Flags().StringVarP(&cmd.To, "to", "t", bdpan.DefaultDownloadDir, "保存地址")
+	pwd, _ := os.Getwd()
+	c.Flags().StringVarP(&cmd.outputDir, "output-dir", "d", pwd, "保存目录。默认为当前目录")
+	c.Flags().StringVarP(&cmd.outputPath, "output-path", "o", "", "保存地址。覆盖已存在文件，优先级比 --output-dir 高")
+
 	c.Flags().BoolVar(&cmd.IsSync, "sync", false, "是否同步进行")
-	c.MarkFlagRequired("from")
+
 	return cmd
 }
 
 type DownloadCommand struct {
-	From   string
-	To     string
-	IsSync bool
+	From       string
+	outputDir  string
+	outputPath string
+	IsSync     bool
 }
 
 func (d DownloadCommand) Run() error {
 	from := d.From
-	to := d.To
-	to, err := homedir.Expand(to)
-	if err != nil {
-		return err
-	}
 	file, err := bdpan.GetFileByPath(from)
 	if err != nil {
 		return err
@@ -45,10 +43,25 @@ func (d DownloadCommand) Run() error {
 	Log.Debugf("是否同步: %v", d.IsSync)
 	Log.Info("开始下载")
 	if file.IsDir() {
-		err = bdpan.TaskDownloadDir(file, to, d.IsSync)
+		dlTasker := bdpan.NewDownloadTasker(file)
+		dlTasker.Path = d.outputPath
+		dlTasker.Dir = d.outputDir
+		err = dlTasker.Exec()
+		if err == nil {
+			total := len(dlTasker.GetTasks())
+			succ := total - len(dlTasker.GetErrorTasks())
+			Log.Infof("下载完成: %d/%d", succ, total)
+		}
 	} else {
-		dler := &bdpan.Downloader{UseProgressBar: true}
-		err = dler.DownloadFile(file, to)
+		dler := bdpan.NewDownloader()
+		dler.UseProgressBar = true
+		dler.Path = d.outputPath
+		dler.Dir = d.outputDir
+		dler.IsCover = true
+		if globalArg.IsVerbose {
+			dler.EnableVerbose()
+		}
+		err = dler.DownloadFile(file, "")
 	}
 	if err != nil {
 		Log.Error(err)
@@ -59,6 +72,9 @@ func (d DownloadCommand) Run() error {
 }
 
 func runDownload(cmd *cobra.Command, args []string) error {
+	if len(args) > 0 {
+		downloadCommand.From = args[0]
+	}
 	return downloadCommand.Run()
 }
 
@@ -66,8 +82,13 @@ func runDownload(cmd *cobra.Command, args []string) error {
 var downloadCmd = &cobra.Command{
 	Use:   "download",
 	Short: "下载文件",
-	Long:  ``,
-	RunE:  runDownload,
+	Example: `  bdpan download /apps/video.mp4				下载文件
+  bdpan download /apps/video.mp4 -d ~/Downloads			指定下载目录
+  bdpan download /apps/video.mp4 -o ~/Downloads/1.mp4		指定下载地址
+	`,
+	DisableFlagsInUseLine: true,
+	Long:                  ``,
+	RunE:                  runDownload,
 }
 
 func init() {

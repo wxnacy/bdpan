@@ -4,16 +4,31 @@ import (
 	"bdpan/common"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 
+	"github.com/wxnacy/dler"
 	"github.com/wxnacy/go-tools"
 )
+
+func NewDownloader() *Downloader {
+	return &Downloader{
+		Out: os.Stdout,
+	}
+
+}
 
 type Downloader struct {
 	File           *FileInfoDto
 	To             string
+	Path           string
+	Dir            string
+	Out            io.Writer
+	IsCover        bool
 	DisableLog     bool
 	UseProgressBar bool
+	isVerbose      bool
 }
 
 func (d *Downloader) Exec() error {
@@ -26,34 +41,27 @@ func (d *Downloader) Exec() error {
 func (d *Downloader) DownloadFile(file *FileInfoDto, to string) error {
 
 	from := file.Path
-	path, err := getToFilePath(from, to)
-	if err != nil {
-		return err
-	}
-	if path == "" {
-		return errors.New("保存地址获取失败")
-	}
-	// Log.Infof("保存地址: %s", path)
-	if common.FileExists(path) {
-		if !d.DisableLog {
-			Log.Warnf("文件已存在: %s", path)
-		}
-		return nil
-	}
 	if !d.DisableLog {
 		Log.Infof("获取文件内容: %s", from)
 	}
 
-	if !d.DisableLog {
-		Log.Infof("开始写入文件: %s", path)
-	}
 	dlink, err := GetFileDLink(file.FSID)
 	Log.Debugf("%s DLink: %s", file.Path, dlink)
 	if err != nil {
 		return err
 	}
-	t := NewDownloadUrlTasker(dlink, path)
-	t.contentLength = file.Size
+	downloadCacheDir := JoinCache("download")
+	tools.DirExistsOrCreate(downloadCacheDir)
+	t := dler.NewFileDownloadTasker(dlink).
+		SetDownloadPath(d.Path).SetDownloadDir(d.Dir).
+		SetCacheDir(downloadCacheDir)
+	if d.isVerbose {
+		t.Request.EnableVerbose()
+	}
+	t.Out = d.Out
+	t.IsNotCover = !d.IsCover
+	t.OutputFunc = LogInfoString
+
 	t.Config.UseProgressBar = d.UseProgressBar
 	err = t.Exec()
 	if err != nil {
@@ -63,9 +71,6 @@ func (d *Downloader) DownloadFile(file *FileInfoDto, to string) error {
 			Log.Errorf("task %v: %v", t.Info, t.Err)
 		}
 		return err
-	}
-	if !d.DisableLog {
-		Log.Info("下载成功")
 	}
 	return nil
 }
@@ -85,4 +90,9 @@ func getToFilePath(from, to string) (string, error) {
 		}
 	}
 	return path, nil
+}
+
+func (d *Downloader) EnableVerbose() *Downloader {
+	d.isVerbose = true
+	return d
 }
