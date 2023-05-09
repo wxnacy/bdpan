@@ -132,7 +132,7 @@ func (m *DownloadTasker) BuildTasks() error {
 func (m DownloadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(DownloadTaskInfo)
 	m.dler.Path = info.To
-	return m.dler.DownloadFile(info.FromFile, "")
+	return m.dler.DownloadFile(info.FromFile)
 }
 
 func (m *DownloadTasker) BeforeRun() error {

@@ -33,12 +33,12 @@ type Downloader struct {
 
 func (d *Downloader) Exec() error {
 	if d.File != nil {
-		return d.DownloadFile(d.File, d.To)
+		return d.DownloadFile(d.File)
 	}
 	return nil
 }
 
-func (d *Downloader) DownloadFile(file *FileInfoDto, to string) error {
+func (d *Downloader) DownloadFile(file *FileInfoDto) error {
 
 	from := file.Path
 	if !d.DisableLog {

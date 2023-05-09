@@ -14,7 +14,6 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wxnacy/go-tools"
 )
 
 var (
@@ -238,8 +237,7 @@ func (r *RootCommand) handleAction(action FileAction) error {
 	case ActionDownload:
 		dler := &bdpan.Downloader{}
 		// 下载时进行重名处理
-		to := tools.FileAutoReDownloadName(bdpan.JoinDownload(file.GetFilename()))
-		err := dler.DownloadFile(file, to)
+		err := dler.DownloadFile(file)
 		if err != nil {
 			return err
 		}

@@ -61,7 +61,7 @@ func (d DownloadCommand) Run() error {
 		if globalArg.IsVerbose {
 			dler.EnableVerbose()
 		}
-		err = dler.DownloadFile(file, "")
+		err = dler.DownloadFile(file)
 	}
 	if err != nil {
 		Log.Error(err)
