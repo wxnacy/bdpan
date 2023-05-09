@@ -5,24 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/wxnacy/dler"
 	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/go-tools"
 )
-
-// func TaskDownloadDir(file *FileInfoDto, to string, isSync bool) error {
-// t := NewDownloadTasker(to)
-// t.FromFile = file
-// t.IsSync = isSync
-// err := t.Exec()
-// if err != nil {
-// return err
-// }
-// total := len(t.GetTasks())
-// succ := total - len(t.GetErrorTasks())
-// Log.Infof("下载完成: %d/%d", succ, total)
-// return nil
-// }
 
 func NewDownloadTasker(file *FileInfoDto) *DownloadTasker {
 	t := DownloadTasker{
@@ -46,9 +34,10 @@ type DownloadTasker struct {
 	FromFile *FileInfoDto
 	Froms    []string
 	// To       string
-	Path   string
-	Dir    string
-	IsSync bool // 是否同步执行
+	Path        string
+	Dir         string
+	IsSync      bool // 是否同步执行
+	IsRecursion bool
 
 	fromDir string      // 文件夹地址
 	toDir   string      // 真实的保存目录
@@ -95,7 +84,9 @@ func (m *DownloadTasker) Build() error {
 			return err
 		}
 	}
-	m.dler.Dir = m.toDir
+	// m.dler.Dir = m.toDir
+	m.dler.IsNotCover = true
+	// m.dler.EnableVerbose()
 	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return err
@@ -109,30 +100,44 @@ func (m *DownloadTasker) AfterRun() error {
 	return nil
 }
 
-func (m *DownloadTasker) BuildTasks() error {
+func (d *DownloadTasker) BuildTasks() error {
+	Log.Info("开始查找文件")
+	Log.Debugf("是否递归下载文件 %v", d.IsRecursion)
 	// 构建下载文件夹时候的任务集合
-	if m.fromDir != "" {
-		files, err := GetDirAllFiles(m.fromDir)
+	if d.fromDir != "" {
+		err := WalkDir(d.fromDir, d.IsRecursion, func(file *FileInfoDto) error {
+			info := DownloadTaskInfo{FromFile: file}
+			d.AddTask(&tasker.Task{Info: info})
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-		for _, f := range files {
-			if f.IsDir() {
-				continue
-			}
-			to := filepath.Join(m.toDir, f.GetFilename())
-			// FIX: 需要修改 to
-			info := DownloadTaskInfo{FromFile: f, To: to}
-			m.AddTask(&tasker.Task{Info: info})
-		}
 	}
+	Log.Infof("找到文件个数 %d", len(d.GetTasks()))
 	return nil
 }
 
-func (m DownloadTasker) RunTask(task *tasker.Task) error {
+func (d DownloadTasker) RunTask(task *tasker.Task) error {
 	info := task.Info.(DownloadTaskInfo)
-	m.dler.Path = info.To
-	return m.dler.DownloadFile(info.FromFile)
+	fromPath := info.FromFile.Path
+	// 计算保存地址
+	toPath := strings.TrimLeft(strings.TrimLeft(fromPath, d.FromFile.Path), "/")
+	toPath = filepath.Join(d.toDir, toPath)
+	// 目录的生成
+	err := tools.DirExistsOrCreate(filepath.Dir(toPath))
+	if err != nil {
+		return err
+	}
+	// 下载
+	err = d.dler.DownloadFileWithPath(info.FromFile, toPath)
+	if err == dler.ErrFileExists {
+		return nil
+	}
+	if err != nil {
+		Log.Errorf("RunTask %v", err)
+	}
+	return err
 }
 
 func (m *DownloadTasker) BeforeRun() error {

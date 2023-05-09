@@ -23,15 +23,17 @@ func NewDownloadCommand(c *cobra.Command) *DownloadCommand {
 	c.Flags().StringVarP(&cmd.outputPath, "output-path", "o", "", "保存地址。覆盖已存在文件，优先级比 --output-dir 高")
 
 	c.Flags().BoolVar(&cmd.IsSync, "sync", false, "是否同步进行")
+	c.Flags().BoolVarP(&cmd.isRecursion, "recursion", "r", false, "是否递归下载")
 
 	return cmd
 }
 
 type DownloadCommand struct {
-	From       string
-	outputDir  string
-	outputPath string
-	IsSync     bool
+	From        string
+	outputDir   string
+	outputPath  string
+	IsSync      bool
+	isRecursion bool
 }
 
 func (d DownloadCommand) Run() error {
@@ -46,6 +48,7 @@ func (d DownloadCommand) Run() error {
 		dlTasker := bdpan.NewDownloadTasker(file)
 		dlTasker.Path = d.outputPath
 		dlTasker.Dir = d.outputDir
+		dlTasker.IsRecursion = d.isRecursion
 		err = dlTasker.Exec()
 		if err == nil {
 			total := len(dlTasker.GetTasks())
@@ -57,7 +60,6 @@ func (d DownloadCommand) Run() error {
 		dler.UseProgressBar = true
 		dler.Path = d.outputPath
 		dler.Dir = d.outputDir
-		dler.IsCover = true
 		if globalArg.IsVerbose {
 			dler.EnableVerbose()
 		}

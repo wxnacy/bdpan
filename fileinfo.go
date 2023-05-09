@@ -30,6 +30,29 @@ func GetDirAllFiles(dir string) ([]*FileInfoDto, error) {
 	return totalList, nil
 }
 
+func WalkDir(dir string, isRecursion bool, fn func(file *FileInfoDto) error) error {
+	files, err := GetDirAllFiles(dir)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if f.IsDir() {
+			if isRecursion {
+				err = WalkDir(f.Path, isRecursion, fn)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			err = fn(f)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func GetFilesByFSIDS(fsids []uint64) ([]*FileInfoDto, error) {
 	res, err := NewFileInfoRequest(fsids).Execute()
 	if err != nil {

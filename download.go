@@ -20,26 +20,35 @@ func NewDownloader() *Downloader {
 }
 
 type Downloader struct {
-	File           *FileInfoDto
-	To             string
+	// File           *FileInfoDto
+	// To             string
 	Path           string
 	Dir            string
 	Out            io.Writer
-	IsCover        bool
+	IsNotCover     bool
 	DisableLog     bool
 	UseProgressBar bool
 	isVerbose      bool
 }
 
 func (d *Downloader) Exec() error {
-	if d.File != nil {
-		return d.DownloadFile(d.File)
-	}
+	// if d.File != nil {
+	// return d.DownloadFile(d.File)
+	// }
 	return nil
 }
 
-func (d *Downloader) DownloadFile(file *FileInfoDto) error {
+func (d *Downloader) SetPath(path string) *Downloader {
+	d.Path = path
+	fmt.Println("SetPath", path, d.Path)
+	return d
+}
 
+func (d *Downloader) DownloadFileWithPath(file *FileInfoDto, path string) error {
+	downloadPath := d.Path
+	if path != "" {
+		downloadPath = path
+	}
 	from := file.Path
 	if !d.DisableLog {
 		Log.Infof("获取文件内容: %s", from)
@@ -53,13 +62,13 @@ func (d *Downloader) DownloadFile(file *FileInfoDto) error {
 	downloadCacheDir := JoinCache("download")
 	tools.DirExistsOrCreate(downloadCacheDir)
 	t := dler.NewFileDownloadTasker(dlink).
-		SetDownloadPath(d.Path).SetDownloadDir(d.Dir).
+		SetDownloadPath(downloadPath).SetDownloadDir(d.Dir).
 		SetCacheDir(downloadCacheDir)
 	if d.isVerbose {
 		t.Request.EnableVerbose()
 	}
 	t.Out = d.Out
-	t.IsNotCover = !d.IsCover
+	t.IsNotCover = d.IsNotCover
 	t.OutputFunc = LogInfoString
 
 	t.Config.UseProgressBar = d.UseProgressBar
@@ -73,6 +82,10 @@ func (d *Downloader) DownloadFile(file *FileInfoDto) error {
 		return err
 	}
 	return nil
+}
+
+func (d *Downloader) DownloadFile(file *FileInfoDto) error {
+	return d.DownloadFileWithPath(file, "")
 }
 
 func getToFilePath(from, to string) (string, error) {
