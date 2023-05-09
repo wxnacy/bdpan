@@ -19,6 +19,8 @@ var (
 	configDir, _ = homedir.Expand("~/.config/bdpan")
 	// 缓存目录
 	cacheDir, _ = homedir.Expand("~/.cache/bdpan")
+	// 日志地址
+	logPath = JoinCache("bdpan.log")
 )
 
 func JoinCache(elem ...string) string {

@@ -1,6 +1,8 @@
 package bdpan
 
 import (
+	"io"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -51,4 +53,9 @@ func GetLogger() *logrus.Logger {
 
 func IsLoggerDebug() bool {
 	return Log.GetLevel() == logrus.DebugLevel
+}
+
+func LogInfoString(w io.Writer, s string) {
+	Log.SetOutput(w)
+	Log.Info(s)
 }
