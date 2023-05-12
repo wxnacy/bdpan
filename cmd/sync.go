@@ -7,9 +7,11 @@ package cmd
 import (
 	"bdpan"
 	"fmt"
+	"html/template"
 	"io"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -27,6 +29,8 @@ type SyncMode int
 const (
 	ModeBackup SyncMode = iota
 	ModeSync
+
+	ActionSync bdpan.SelectAction = iota
 )
 
 type SyncModelSlice []*SyncModel
@@ -81,6 +85,21 @@ func (s SyncModel) BuildPretty() []pretty.Field {
 	return data
 }
 
+func (s SyncModel) Desc() string {
+	tpl := `------------- {{.ID}} ----------------
+      ID: {{.ID}}
+   Local: {{.Local}}
+  Remote: {{.Remote}}
+    Mode: {{.GetMode}}
+    Hash: {{.Hash}}
+   CTime: {{.CreateTime}}
+`
+	tmpl, _ := template.New("").Parse(tpl)
+	buf := new(strings.Builder)
+	_ = tmpl.Execute(buf, s)
+	return buf.String()
+}
+
 func (s SyncModel) IsBackup() bool {
 	if s.Mode == ModeBackup {
 		return true
@@ -128,10 +147,87 @@ func (s SyncCommand) getModels() (m map[string]*SyncModel) {
 	return
 }
 
+func (s SyncCommand) getModelSlice() []*SyncModel {
+	models := s.getModels()
+	modelSlice := make([]*SyncModel, 0)
+	for _, f := range models {
+		modelSlice = append(modelSlice, f)
+	}
+	slice := SyncModelSlice(modelSlice)
+	sort.Sort(slice)
+	return slice
+}
+
+func (s SyncCommand) getModelItems() []*bdpan.SelectItem {
+	models := s.getModelSlice()
+	items := make([]*bdpan.SelectItem, 0)
+	for _, m := range models {
+		item := &bdpan.SelectItem{
+			Name:   m.Remote,
+			Desc:   m.Desc(),
+			Info:   m,
+			Action: bdpan.ActionSystem,
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
 func (s SyncCommand) getModel(id string) (*SyncModel, bool) {
 	models := s.getModels()
 	m, exits := models[id]
 	return m, exits
+}
+
+func (s SyncCommand) selectSync() error {
+	models := s.getModelItems()
+	handle := func(item *bdpan.SelectItem) error {
+		return s.handleAction(item)
+	}
+	return bdpan.PromptSelect("所有同步任务", models, true, 10, func(index int, s string) error {
+		item := models[index]
+		return handle(item)
+	})
+}
+
+func (s SyncCommand) handleAction(item *bdpan.SelectItem) error {
+	switch item.Action {
+	case bdpan.ActionSystem:
+		return s.selectSystem(item)
+	case ActionSync:
+		m := item.Info.(*SyncModel)
+		s.syncModel(m)
+		return s.selectSync()
+	case bdpan.ActionDelete:
+		m := item.Info.(*SyncModel)
+		s.deleteModel(m.ID)
+		return s.selectSync()
+	}
+	return nil
+}
+
+func (s SyncCommand) selectSystem(item *bdpan.SelectItem) error {
+	systems := []*bdpan.SelectItem{
+		&bdpan.SelectItem{
+			Name:   "Sync",
+			Desc:   "进行一次同步操作",
+			Info:   item.Info,
+			Action: ActionSync,
+		},
+		&bdpan.SelectItem{
+			Name:   "Delete",
+			Desc:   "删除操作",
+			Info:   item.Info,
+			Action: bdpan.ActionDelete,
+		},
+	}
+	handle := func(item *bdpan.SelectItem) error {
+		return s.handleAction(item)
+	}
+	return bdpan.PromptSelect("操作列表", systems, true, 5, func(index int, s string) error {
+		item := systems[index]
+		return handle(item)
+	})
 }
 
 func (s SyncCommand) Run() error {
@@ -167,11 +263,13 @@ func (s SyncCommand) Run() error {
 		if s.ID == "" {
 			return fmt.Errorf("--delete 缺少参数 --id")
 		}
-		models := s.getModels()
-		delete(models, s.ID)
-		s.PrintList(models)
-		return gotool.FileWriteWithInterface(modelPath, models)
+		err := s.deleteModel(s.ID)
+		if err != nil {
+			return err
+		}
+		s.PrintList(s.getModels())
 	} else {
+		return s.selectSync()
 		// 执行同步操作
 		fmt.Println("开始进行同步操作")
 		models := map[string]*SyncModel{}
@@ -211,6 +309,21 @@ func (s SyncCommand) syncModel(m *SyncModel) error {
 		return err
 	}
 	return nil
+}
+
+func (s SyncCommand) deleteModel(id string) error {
+	m, flag := s.getModel(id)
+	if !flag {
+		return fmt.Errorf("%s 不存在", id)
+	}
+	fmt.Println(m.Desc())
+	flag = bdpan.PromptConfirm("确定删除")
+	if !flag {
+		return nil
+	}
+	models := s.getModels()
+	delete(models, id)
+	return gotool.FileWriteWithInterface(modelPath, models)
 }
 
 func (s SyncCommand) PrintList(models map[string]*SyncModel) {
