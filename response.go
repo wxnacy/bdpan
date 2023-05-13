@@ -57,7 +57,7 @@ func (e ErrorResponse) Err() error {
 			return ErrUserNoUse
 		case 111:
 			return ErrAccessTokenFail
-		case 31034:
+		case 31034, 9013, 9019:
 			return ErrApiFrequent
 		default:
 			return fmt.Errorf("未知错误: %d", e.Errno)
