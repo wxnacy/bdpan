@@ -4,11 +4,10 @@ import (
 	"bdpan/openapi"
 	"fmt"
 	"strconv"
-	"strings"
-	"text/template"
 	"time"
 
 	"github.com/wxnacy/go-pretty"
+	"github.com/wxnacy/go-tools"
 	"github.com/wxnacy/gotool"
 )
 
@@ -38,7 +37,6 @@ func (f FileInfoDto) GetFilename() string {
 
 func (f FileInfoDto) GetSize() string {
 	return gotool.FormatSize(int64(f.Size))
-
 }
 
 func (f FileInfoDto) formatTime(t int64) string {
@@ -163,10 +161,7 @@ Filetype: {{.GetFileTypeIcon}} {{.GetFileType}}
   LCTime: {{.GetLocalCTime}}
   LMTime: {{.GetLocalMTime}}
 `
-	tmpl, _ := template.New("FileInfoDtoPrettyPrint").Parse(tpl)
-	buf := new(strings.Builder)
-	_ = tmpl.Execute(buf, f)
-	return buf.String()
+	return tools.FormatTemplate(tpl, f)
 }
 func (f FileInfoDto) BuildPretty() []pretty.Field {
 	var data = make([]pretty.Field, 0)

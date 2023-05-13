@@ -7,15 +7,14 @@ package cmd
 import (
 	"bdpan"
 	"fmt"
-	"html/template"
 	"io"
 	"os"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/wxnacy/go-pretty"
+	"github.com/wxnacy/go-tools"
 	"github.com/wxnacy/gotool"
 )
 
@@ -92,12 +91,9 @@ func (s SyncModel) Desc() string {
   Remote: {{.Remote}}
     Mode: {{.GetMode}}
     Hash: {{.Hash}}
-   CTime: {{.CreateTime}}
+   CTime: {{.GetCreateTime}}
 `
-	tmpl, _ := template.New("").Parse(tpl)
-	buf := new(strings.Builder)
-	_ = tmpl.Execute(buf, s)
-	return buf.String()
+	return tools.FormatTemplate(tpl, s)
 }
 
 func (s SyncModel) IsBackup() bool {
@@ -106,6 +102,10 @@ func (s SyncModel) IsBackup() bool {
 	} else {
 		return false
 	}
+}
+
+func (s SyncModel) GetCreateTime() string {
+	return s.CreateTime.Format("2006-01-02 15:04:05")
 }
 
 func (s SyncModel) GetMode() string {
