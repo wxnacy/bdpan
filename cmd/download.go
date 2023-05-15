@@ -34,12 +34,8 @@ type DownloadCommand struct {
 	isRecursion bool
 }
 
-func (d DownloadCommand) Run() error {
-	from := d.From
-	file, err := bdpan.GetFileByPath(from)
-	if err != nil {
-		return err
-	}
+func (d DownloadCommand) Download(file *bdpan.FileInfoDto) error {
+	var err error
 	Log.Debugf("是否同步: %v", d.IsSync)
 	Log.Info("开始下载")
 	if file.IsDir() {
@@ -71,8 +67,16 @@ func (d DownloadCommand) Run() error {
 		Log.Error(err)
 		return nil
 	}
+	return err
+}
 
-	return nil
+func (d DownloadCommand) Run() error {
+	from := d.From
+	file, err := bdpan.GetFileByPath(from)
+	if err != nil {
+		return err
+	}
+	return d.Download(file)
 }
 
 func runDownload(cmd *cobra.Command, args []string) error {

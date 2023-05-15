@@ -137,6 +137,7 @@ func (d DownloadTasker) RunTask(task *tasker.Task) error {
 }
 
 func (m *DownloadTasker) BeforeRun() error {
+	Log.Infof("保存地址: %s", m.toDir)
 	if !common.DirExists(m.toDir) {
 		Log.Debugf("创建目录: %s", m.toDir)
 		err := os.Mkdir(m.toDir, common.PermDir)

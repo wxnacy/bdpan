@@ -42,6 +42,20 @@ func NewBackFileAction(dir string) FileAction {
 		Desc:   "返回上层目录",
 	}
 }
+func NewSystemDirAction(dir string) FileAction {
+	backupFile := &bdpan.FileInfoDto{
+		Filename: "操作",
+		Path:     dir,
+		FileType: 1,
+	}
+	return FileAction{
+		Name:   backupFile.GetFilename(),
+		Icon:   "漣",
+		File:   backupFile,
+		Action: ActionViewFile,
+		Desc:   "操作当前目录",
+	}
+}
 
 func NewViewFileActions(files []*bdpan.FileInfoDto) []FileAction {
 	actions := make([]FileAction, 0)
@@ -217,6 +231,7 @@ func (r *RootCommand) promptSelect(
 
 // 返回上传目录
 func (r *RootCommand) handleAction(action FileAction) error {
+	var err error
 	file := action.File
 	switch action.Action {
 	case ActionViewDir:
@@ -233,11 +248,15 @@ func (r *RootCommand) handleAction(action FileAction) error {
 				return err
 			}
 		}
+		if file.IsDir() {
+			return r.viewBackDir(file.Path)
+		}
 		return r.viewCurrDir(file)
 	case ActionDownload:
-		dler := bdpan.NewDownloader()
-		// 下载时进行重名处理
-		err := dler.DownloadFile(file)
+		cmd := &DownloadCommand{
+			isRecursion: true,
+		}
+		err = cmd.Download(file)
 		if err != nil {
 			return err
 		}

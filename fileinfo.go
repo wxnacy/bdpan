@@ -31,6 +31,7 @@ func GetDirAllFiles(dir string) ([]*FileInfoDto, error) {
 }
 
 func WalkDir(dir string, isRecursion bool, fn func(file *FileInfoDto) error) error {
+	Log.Debugf("WalkDir %v %s", isRecursion, dir)
 	files, err := GetDirAllFiles(dir)
 	if err != nil {
 		return err
