@@ -21,6 +21,8 @@ var (
 	cacheDir, _ = homedir.Expand("~/.cache/bdpan")
 	// 日志地址
 	logPath = JoinCache("bdpan.log")
+	// 同步存储地址
+	syncPath = JoinStoage("sync.json")
 )
 
 func JoinCache(elem ...string) string {
