@@ -15,13 +15,11 @@ import (
 func NewDownloader() *Downloader {
 	return &Downloader{
 		Out: os.Stdout,
-		Dir: PwdDir,
+		Dir: GetDefaultDownloadDir(),
 	}
 }
 
 type Downloader struct {
-	// File           *FileInfoDto
-	// To             string
 	Path           string
 	Dir            string
 	Out            io.Writer
@@ -32,9 +30,6 @@ type Downloader struct {
 }
 
 func (d *Downloader) Exec() error {
-	// if d.File != nil {
-	// return d.DownloadFile(d.File)
-	// }
 	return nil
 }
 

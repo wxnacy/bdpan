@@ -17,6 +17,7 @@ func NewDownloadTasker(file *FileInfoDto) *DownloadTasker {
 		Tasker:   tasker.NewTasker(),
 		FromFile: file,
 		dler:     NewDownloader(),
+		Dir:      GetDefaultDownloadDir(),
 	}
 	return &t
 }
@@ -49,10 +50,6 @@ func (d *DownloadTasker) buildToDir() error {
 	if d.Path != "" {
 		d.toDir = d.Path
 	} else {
-		if d.Dir == "" {
-			pwd, _ := os.Getwd()
-			d.Dir = pwd
-		}
 		d.toDir = filepath.Join(d.Dir, filepath.Base(d.FromFile.Path))
 	}
 
@@ -84,10 +81,9 @@ func (m *DownloadTasker) Build() error {
 			return err
 		}
 	}
-	// m.dler.Dir = m.toDir
 	m.dler.IsNotCover = true
-	// m.dler.EnableVerbose()
-	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
+	logFile, err := os.OpenFile(
+		logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend|os.ModePerm)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ package cmd
 
 import (
 	"bdpan"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -18,8 +17,7 @@ var (
 func NewDownloadCommand(c *cobra.Command) *DownloadCommand {
 	cmd := &DownloadCommand{}
 
-	pwd, _ := os.Getwd()
-	c.Flags().StringVarP(&cmd.outputDir, "output-dir", "d", pwd, "保存目录。默认为当前目录")
+	c.Flags().StringVarP(&cmd.outputDir, "output-dir", "d", "", "保存目录。默认为当前目录")
 	c.Flags().StringVarP(&cmd.outputPath, "output-path", "o", "", "保存地址。覆盖已存在文件，优先级比 --output-dir 高")
 
 	c.Flags().BoolVar(&cmd.IsSync, "sync", false, "是否同步进行")
@@ -47,7 +45,9 @@ func (d DownloadCommand) Run() error {
 	if file.IsDir() {
 		dlTasker := bdpan.NewDownloadTasker(file)
 		dlTasker.Path = d.outputPath
-		dlTasker.Dir = d.outputDir
+		if d.outputDir != "" {
+			dlTasker.Dir = d.outputDir
+		}
 		dlTasker.IsRecursion = d.isRecursion
 		err = dlTasker.Exec()
 		if err == nil {
@@ -59,7 +59,9 @@ func (d DownloadCommand) Run() error {
 		dler := bdpan.NewDownloader()
 		dler.UseProgressBar = true
 		dler.Path = d.outputPath
-		dler.Dir = d.outputDir
+		if d.outputDir != "" {
+			dler.Dir = d.outputDir
+		}
 		if globalArg.IsVerbose {
 			dler.EnableVerbose()
 		}

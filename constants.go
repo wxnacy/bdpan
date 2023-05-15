@@ -9,13 +9,14 @@ import (
 
 const (
 	DefaultUploadDir = "/apps/bdpan/"
+	EnvDownloadDir   = "BDPAN_DOWNLOAD_DIR"
 )
 
 var (
-	// 默认下载目录
-	DefaultDownloadDir, _ = homedir.Expand("~/Downloads")
 	// 当前目录
 	PwdDir, _ = os.Getwd()
+	// 默认下载目录
+	DefaultDownloadDir, _ = homedir.Expand("~/Downloads")
 	// 存储目录
 	stoageDir, _ = homedir.Expand("~/.local/share/bdpan")
 	// 配置目录
@@ -27,6 +28,14 @@ var (
 	// 同步存储地址
 	syncPath = JoinStoage("sync.json")
 )
+
+func GetDefaultDownloadDir() string {
+	dir := os.Getenv(EnvDownloadDir)
+	if dir == "" {
+		dir = PwdDir
+	}
+	return dir
+}
 
 func JoinCache(elem ...string) string {
 	return join(cacheDir, elem...)
