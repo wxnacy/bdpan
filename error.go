@@ -13,3 +13,5 @@ var ErrUserNoUse error = errors.New("不允许接入用户数据")
 var ErrAccessTokenFail error = errors.New("access token 失效")
 
 var ErrApiFrequent error = errors.New("接口请求过于频繁，注意控制")
+
+var ErrPathExists error = errors.New("文件已存在")

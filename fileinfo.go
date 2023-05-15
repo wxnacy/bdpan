@@ -206,37 +206,47 @@ func GetUriBytes(uri string, rangeStart, rangeEnd int) ([]byte, error) {
 
 func DeleteFile(path string) error {
 	Log.Infof("开始删除 %s", path)
-	res, err := NewFileDeleteRequest([]string{path}).Execute()
+	_, err := NewFileManagerRequest(
+		OperaDelete,
+		[]*FileManagerFile{
+			NewFileManagerFile(path, "", "", ""),
+		},
+	).Execute()
 	if err != nil {
 		return err
-	}
-	for _, info := range res.Info {
-		if info.Path == path && info.Errno > 0 {
-			return errors.New(fmt.Sprintf("%s delete failed", path))
-		}
 	}
 	Log.Info("删除成功")
 	return nil
 }
 
-func fileDelete(req FileDeleteRequest) (*FileManagerResponse, error) {
-	token, err := GetConfigAccessToken()
+func MoveFile(path, toPath string) error {
+	Log.Infof("移动文件 %s ==> %s", path, toPath)
+	_, err := NewFileManagerRequest(
+		OperaMove,
+		[]*FileManagerFile{
+			NewFileManagerFile(path, filepath.Dir(toPath), filepath.Base(toPath), ""),
+		},
+	).Execute()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	r, err := GetClient().FilemanagerApi.Filemanagerdelete(
-		context.Background()).AccessToken(token.AccessToken).Async(
-		req.Async).Ondup(req.Ondup).Filelist(req.GetFilelistString()).Execute()
-	if err != nil {
-		return nil, err
-	}
+	Log.Info("移动成功")
+	return nil
+}
 
-	res := &FileManagerResponse{}
-	err = httpResponseToInterface(r, res)
+func CopyFile(path, toPath string) error {
+	Log.Infof("复制文件 %s ==> %s", path, toPath)
+	_, err := NewFileManagerRequest(
+		OperaCopy,
+		[]*FileManagerFile{
+			NewFileManagerFile(path, filepath.Dir(toPath), filepath.Base(toPath), ""),
+		},
+	).SetOndup(OndupOverwrite).Execute()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return res, nil
+	Log.Info("复制成功")
+	return nil
 }
 
 // https://pan.baidu.com/union/doc/Zksg0sb73

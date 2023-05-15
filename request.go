@@ -1,8 +1,11 @@
 package bdpan
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 )
 
@@ -246,23 +249,65 @@ func (r FileSearchRequest) Execute() (*FileListResponse, error) {
 // FileDeleteRequest
 // ****************************************
 
-type FileManagerFilelist struct {
+type FileManageOpera int
+
+const (
+	OndupFail      string = "fail"
+	OndupNewCopy          = "newcopy"
+	OndupOverwrite        = "overwrite"
+	OndupSkip             = "skip"
+
+	AsyncSync int32 = iota
+	AsyncSelfAdaptation
+	AsyncAsync
+
+	OperaMove FileManageOpera = iota
+	OperaCopy
+	OperaDelete
+)
+
+func NewFileManagerFile(path, dest, newname, ondup string) *FileManagerFile {
+	return &FileManagerFile{
+		Path:    path,
+		Dest:    dest,
+		Newname: newname,
+		Ondup:   ondup,
+	}
+}
+
+type FileManagerFile struct {
 	Path    string `json:"path,omitempty"`
 	Newname string `json:"newname,omitempty"`
 	Dest    string `json:"dest,omitempty"`
 	Ondup   string `json:"ondup,omitempty"`
 }
 
-type FileManagerRequest struct {
-	Filelist []FileManagerFilelist
-	Async    int32
-	Ondup    string
+func NewFileManagerRequest(opera FileManageOpera, filelist []*FileManagerFile) *FileManagerRequest {
+	return &FileManagerRequest{
+		Async: AsyncSelfAdaptation, Ondup: OndupFail, Filelist: filelist,
+		Opera: opera,
+	}
 }
 
-func newFileManagerRequest(filelist []FileManagerFilelist) FileManagerRequest {
-	return FileManagerRequest{
-		Async: int32(1), Ondup: "overwrite", Filelist: filelist,
+type FileManagerRequest struct {
+	Filelist []*FileManagerFile
+	// 0 同步，1 自适应，2 异步
+	Async int32
+	// 全局ondup,遇到重复文件的处理策略,
+	// fail(默认，直接返回失败)、newcopy(重命名文件)、overwrite、skip
+	Ondup string
+	// 文件操作参数，可实现文件复制、移动、重命名、删除，依次对应的参数值为：copy、move、rename、delete
+	Opera FileManageOpera
+}
+
+func (f *FileManagerRequest) SetOndup(ondup string) *FileManagerRequest {
+	f.Ondup = ondup
+	for _, f := range f.Filelist {
+		if f.Ondup == "" {
+			f.Ondup = ondup
+		}
 	}
+	return f
 }
 
 func (fm FileManagerRequest) GetFilelistString() string {
@@ -270,24 +315,49 @@ func (fm FileManagerRequest) GetFilelistString() string {
 	return string(bytes)
 }
 
-// ****************************************
-// FileDeleteRequest
-// ****************************************
-
-type FileDeleteRequest struct {
-	FileManagerRequest
+func (fm FileManagerRequest) handleResponse(r *http.Response, err error) (*FileManagerResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	Log.Debugf("FileManager resp: %v", r)
+	res := &FileManagerResponse{}
+	err = httpToResponse(r, res)
+	if err != nil {
+		return res, err
+	}
+	var errMsg string
+	for _, info := range res.Info {
+		if info.IsError() {
+			errMsg = fmt.Sprintf("%s\n%s: %v", errMsg, info.Path, info.Err())
+		}
+	}
+	if errMsg != "" {
+		return res, errors.New(errMsg)
+	}
+	return res, nil
 }
 
-func NewFileDeleteRequest(paths []string) FileDeleteRequest {
-	filelist := []FileManagerFilelist{}
-	for _, path := range paths {
-		filelist = append(filelist, FileManagerFilelist{Path: path})
+func (fm FileManagerRequest) Execute() (*FileManagerResponse, error) {
+	var err error
+	token, err := GetConfigAccessToken()
+	if err != nil {
+		return nil, err
 	}
-	return FileDeleteRequest{
-		FileManagerRequest: newFileManagerRequest(filelist),
+	api := GetClient().FilemanagerApi
+	var r *http.Response
+	switch fm.Opera {
+	case OperaMove:
+		r, err = api.Filemanagermove(context.Background()).
+			AccessToken(token.AccessToken).Async(fm.Async).Ondup(fm.Ondup).
+			Filelist(fm.GetFilelistString()).Execute()
+	case OperaCopy:
+		r, err = api.Filemanagercopy(context.Background()).
+			AccessToken(token.AccessToken).Async(fm.Async).Ondup(fm.Ondup).
+			Filelist(fm.GetFilelistString()).Execute()
+	case OperaDelete:
+		r, err = api.Filemanagerdelete(context.Background()).
+			AccessToken(token.AccessToken).Async(fm.Async).Ondup(fm.Ondup).
+			Filelist(fm.GetFilelistString()).Execute()
 	}
-}
-
-func (r FileDeleteRequest) Execute() (*FileManagerResponse, error) {
-	return fileDelete(r)
+	return fm.handleResponse(r, err)
 }

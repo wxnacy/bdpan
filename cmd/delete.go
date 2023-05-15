@@ -10,33 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	deleteCommand *DeleteCommand
-)
+var deleteCommand = &ManageCommand{opera: bdpan.OperaDelete}
 
-func NewDeleteCommand(c *cobra.Command) *DeleteCommand {
-	cmd := &DeleteCommand{}
-	c.Flags().StringVarP(&cmd.Path, "path", "p", "", "文件地址")
-	return cmd
-}
-
-type DeleteCommand struct {
-	Path string
-}
-
-func (d DeleteCommand) Run() error {
-	path := d.Path
-	if path != "" {
-		err := bdpan.DeleteFile(path)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func runDelete(cmd *cobra.Command, args []string) error {
-	return deleteCommand.Run()
+func runDelete(cmd *cobra.Command, args []string) {
+	handleCmdErr(deleteCommand.Exec(args))
 }
 
 // deleteCmd represents the delete command
@@ -44,10 +21,10 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "删除文件",
 	Long:  ``,
-	RunE:  runDelete,
+	Run:   runDelete,
 }
 
 func init() {
-	deleteCommand = NewDeleteCommand(deleteCmd)
+	deleteCmd.Flags().StringVarP(&deleteCommand.path, "path", "p", "", "操作地址")
 	rootCmd.AddCommand(deleteCmd)
 }

@@ -8,6 +8,11 @@ import (
 	"os"
 )
 
+type IResponse interface {
+	IsError() bool
+	Err() error
+}
+
 func NewRespError(r *http.Response) error {
 	return NewErrorResponse(r).Err()
 }
@@ -25,6 +30,10 @@ type ErrorResponse struct {
 	ErrorCode        int    `json:"error_code"`
 	ErrorMsg         string `json:"error_msg"`
 	r                *http.Response
+}
+
+func (e ErrorResponse) IsError() bool {
+	return e.Errno != 0
 }
 
 func (e ErrorResponse) Error() string {
@@ -55,6 +64,8 @@ func (e ErrorResponse) Err() error {
 			return ErrParamError
 		case 6:
 			return ErrUserNoUse
+		case 12:
+			return ErrPathExists
 		case 111:
 			return ErrAccessTokenFail
 		case 31034, 9013, 9019:
@@ -65,12 +76,19 @@ func (e ErrorResponse) Err() error {
 	}
 }
 
-type Response struct {
-	ErrorResponse
+func httpToResponse(r *http.Response, i IResponse) error {
+	err := httpResponseToInterface(r, i)
+	if err != nil {
+		return err
+	}
+	if i.IsError() {
+		return i.Err()
+	}
+	return nil
 }
 
-func (r Response) IsError() bool {
-	return r.Errno != 0
+type Response struct {
+	ErrorResponse
 }
 
 type FileListResponse struct {
@@ -122,12 +140,12 @@ type UploadFileResponse struct {
 // ****************************************
 
 type FileManagerInfo struct {
-	Errno int32  `json:"errno,omitempty"`
-	Path  string `json:"path,omitempty"`
+	ErrorResponse
+	Path string `json:"path,omitempty"`
 }
 
 type FileManagerResponse struct {
-	Errno     int32             `json:"errno,omitempty"`
+	Response
 	Info      []FileManagerInfo `json:"info,omitempty"`
 	RequestId int64             `json:"request_id,omitempty"`
 	Taskid    int64             `json:"taskid,omitempty"`
