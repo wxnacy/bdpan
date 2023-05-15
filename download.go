@@ -15,8 +15,8 @@ import (
 func NewDownloader() *Downloader {
 	return &Downloader{
 		Out: os.Stdout,
+		Dir: PwdDir,
 	}
-
 }
 
 type Downloader struct {

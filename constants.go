@@ -1,6 +1,7 @@
 package bdpan
 
 import (
+	"os"
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
@@ -13,6 +14,8 @@ const (
 var (
 	// 默认下载目录
 	DefaultDownloadDir, _ = homedir.Expand("~/Downloads")
+	// 当前目录
+	PwdDir, _ = os.Getwd()
 	// 存储目录
 	stoageDir, _ = homedir.Expand("~/.local/share/bdpan")
 	// 配置目录
