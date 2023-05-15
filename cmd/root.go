@@ -80,7 +80,7 @@ func NewFileActions(file *bdpan.FileInfoDto) []FileAction {
 	actions = append(actions, FileAction{
 		Name:   "CopyPath",
 		File:   file,
-		Icon:   "",
+		Icon:   "",
 		Action: ActionCopyPath,
 		Desc:   "复制文件地址到剪切板",
 	})
@@ -90,6 +90,27 @@ func NewFileActions(file *bdpan.FileInfoDto) []FileAction {
 		File:   file,
 		Action: ActionDownload,
 		Desc:   "下载文件到 " + bdpan.DefaultDownloadDir,
+	})
+	actions = append(actions, FileAction{
+		Name:   "Copy",
+		Icon:   "",
+		File:   file,
+		Action: ActionCopy,
+		Desc:   "复制文件",
+	})
+	actions = append(actions, FileAction{
+		Name:   "Move",
+		Icon:   "",
+		File:   file,
+		Action: ActionMove,
+		Desc:   "剪切文件",
+	})
+	actions = append(actions, FileAction{
+		Name:   "Paste",
+		Icon:   "",
+		File:   file,
+		Action: ActionPaste,
+		Desc:   "粘贴文件",
 	})
 	actions = append(actions, FileAction{
 		Name:   "Delete",
@@ -111,6 +132,9 @@ const (
 	ActionCopyPath
 	ActionViewDir
 	ActionViewFile
+	ActionCopy
+	ActionMove
+	ActionPaste
 )
 
 type FileAction struct {
@@ -124,6 +148,9 @@ type FileAction struct {
 type RootCommand struct {
 	Path  string
 	Limit int
+
+	from  string
+	opera bdpan.FileManageOpera
 }
 
 func (r *RootCommand) Run() error {
@@ -139,11 +166,10 @@ func (r *RootCommand) viewPath(path string) error {
 		return err
 	}
 	if file.IsDir() {
-		r.viewCurrDir(file)
+		return r.viewCurrDir(file)
 	} else {
-		r.viewFile(file)
+		return r.viewFile(file)
 	}
-	return nil
 }
 
 func (r *RootCommand) viewFile(file *bdpan.FileInfoDto) error {
@@ -267,6 +293,31 @@ func (r *RootCommand) handleAction(action FileAction) error {
 			return err
 		}
 		Log.Infof("%s 已经复制到剪切板", file.Path)
+		return r.viewCurrDir(file)
+	case ActionCopy:
+		r.from = file.Path
+		r.opera = bdpan.OperaCopy
+		Log.Infof("%s 文件已复制", file.Path)
+		return r.viewCurrDir(file)
+	case ActionMove:
+		r.from = file.Path
+		r.opera = bdpan.OperaMove
+		Log.Infof("%s 文件已剪切", file.Path)
+		return r.viewCurrDir(file)
+	case ActionPaste:
+		if r.from == "" || r.opera < 0 {
+			return r.viewCurrDir(file)
+		}
+		to := filepath.Join(filepath.Dir(file.Path), filepath.Base(r.from))
+		c := &ManageCommand{
+			opera: r.opera,
+			path:  r.from,
+			to:    to,
+		}
+		err = c.Exec([]string{})
+		if err != nil {
+			return err
+		}
 		return r.viewCurrDir(file)
 	}
 	return nil

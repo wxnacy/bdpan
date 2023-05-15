@@ -7,6 +7,8 @@ package cmd
 import (
 	"bdpan"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -52,9 +54,16 @@ func (m ManageCommand) handleOpera(from, to string, fn func(string, string) erro
 		fmt.Printf("%s 已存在，是否重命名(y/N): ", to)
 		fmt.Scanln(&input)
 		if input == "y" {
+			var newPath string
 			fmt.Print("请输入新地址: ")
-			fmt.Scanln(&input)
-			return fn(from, input)
+			fmt.Scanln(&newPath)
+			if newPath == "" {
+				return fmt.Errorf("输入地址有误")
+			}
+			if !strings.HasPrefix(newPath, "/") {
+				newPath = filepath.Join(filepath.Dir(to), newPath)
+			}
+			return fn(from, newPath)
 		} else {
 			fmt.Println("操作取消")
 			return nil
