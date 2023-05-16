@@ -14,24 +14,19 @@ import (
 
 var (
 	syncCommand = &SyncCommand{}
-	modelPath   = bdpan.JoinStoage("sync.json")
 )
-
-type SyncMode int
 
 const (
 	ActionSync bdpan.SelectAction = iota
 )
 
 type SyncCommand struct {
-	ID       string
-	Remote   string
-	Local    string
-	IsBackup bool // 是否为备份
-	HasHide  bool
-	IsOnce   bool
+	ID string
+	// Remote   string
+	// Local    string
+	// IsBackup bool // 是否为备份
+	// HasHide  bool
 
-	IsCmdAdd  bool
 	IsCmdDel  bool
 	IsCmdList bool
 }
@@ -119,28 +114,7 @@ func (s SyncCommand) selectSystem(item *bdpan.SelectItem) error {
 
 func (s SyncCommand) Run() error {
 	Log.Debugf("arg: %#v", s)
-	if s.IsCmdAdd {
-		mode := bdpan.ModeSync
-		if s.IsBackup {
-			mode = bdpan.ModeBackup
-		}
-
-		model := bdpan.NewSyncModel(s.Local, s.Remote, mode)
-		Log.Debugf("add model: %#v", model)
-
-		key := model.ID
-		models := bdpan.GetModels()
-		_, exits := models[key]
-		if exits {
-			return fmt.Errorf("已存在该记录")
-		}
-		models[key] = model
-		err := bdpan.SaveModels(models)
-		if err != nil {
-			return err
-		}
-		bdpan.PrintSyncModelList()
-	} else if s.IsCmdList {
+	if s.IsCmdList {
 		bdpan.PrintSyncModelList()
 	} else if s.IsCmdDel {
 		if s.ID == "" {
@@ -159,21 +133,13 @@ var syncCmd = &cobra.Command{
 	Short: "同步文件夹",
 	Long:  `可以对本地和远程文件夹做同步和备份两种操作`,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := syncCommand.Run()
-		handleCmdErr(err)
+		handleCmdErr(syncCommand.Run())
 	},
 }
 
 func init() {
 	syncCmd.Flags().StringVarP(&syncCommand.ID, "id", "", "", "任务 id")
-	syncCmd.Flags().StringVarP(&syncCommand.Remote, "remote", "r", "", "远程文件夹")
-	syncCmd.Flags().StringVarP(&syncCommand.Local, "local", "L", "", "本地文件夹")
-	syncCmd.Flags().BoolVarP(&syncCommand.HasHide, "hide", "H", false, "是否包含隐藏文件")
-	syncCmd.Flags().BoolVarP(&syncCommand.IsOnce, "once", "o", false, "是否执行单次")
-	syncCmd.Flags().BoolVarP(&syncCommand.IsBackup, "backup", "", false, "是否为备份目录")
-	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdAdd, "add", "", false, "添加同步目录")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdDel, "delete", "", false, "删除同步目录")
 	syncCmd.Flags().BoolVarP(&syncCommand.IsCmdList, "list", "", false, "列出同步目录")
-	syncCmd.MarkFlagsRequiredTogether("remote", "local")
 	rootCmd.AddCommand(syncCmd)
 }

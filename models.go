@@ -201,6 +201,7 @@ func (s SyncModel) BuildPretty() []pretty.Field {
 	data = append(data, pretty.Field{Name: "Local", Value: s.Local})
 	data = append(data, pretty.Field{Name: "Remote", Value: s.Remote})
 	data = append(data, pretty.Field{Name: "Mode", Value: s.GetMode()})
+	data = append(data, pretty.Field{Name: "HasHide", Value: fmt.Sprintf("%v", s.HasHide)})
 	data = append(data, pretty.Field{Name: "CreateTime", Value: s.GetCreateTime()})
 	data = append(data, pretty.Field{Name: "LastSyncTime", Value: s.GetLastSyncTime()})
 	return data
@@ -212,6 +213,7 @@ func (s SyncModel) Desc() string {
    Local: {{.Local}}
   Remote: {{.Remote}}
     Mode: {{.GetMode}}
+ HasHide: {{.HasHide}}
     Hash: {{.Hash}}
    CTime: {{.GetCreateTime}}
    LSTime: {{.GetLastSyncTime}}
