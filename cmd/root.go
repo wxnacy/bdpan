@@ -203,6 +203,7 @@ func (r *RootCommand) viewDir(dir string) error {
 	if dir != "/" {
 		actions = append(actions, NewBackFileAction(dir))
 	}
+	actions = append(actions, NewSystemDirAction(dir))
 	files, err := bdpan.GetDirAllFiles(dir)
 	actions = append(actions, NewViewFileActions(files)...)
 	if err != nil {
@@ -308,7 +309,11 @@ func (r *RootCommand) handleAction(action FileAction) error {
 		if r.from == "" || r.opera < 0 {
 			return r.viewCurrDir(file)
 		}
-		to := filepath.Join(filepath.Dir(file.Path), filepath.Base(r.from))
+		dir := filepath.Dir(file.Path)
+		if file.IsDir() {
+			dir = file.Path
+		}
+		to := filepath.Join(dir, filepath.Base(r.from))
 		c := &ManageCommand{
 			opera: r.opera,
 			path:  r.from,
