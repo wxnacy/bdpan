@@ -24,6 +24,7 @@ type SelectAction int
 const (
 	ActionSystem SelectAction = iota + 100
 	ActionDelete
+	ActionBack
 )
 
 type SelectItem struct {

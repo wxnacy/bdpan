@@ -73,6 +73,8 @@ func (s SyncCommand) handleAction(item *bdpan.SelectItem) error {
 	switch item.Action {
 	case bdpan.ActionSystem:
 		return s.selectSystem(item)
+	case bdpan.ActionBack:
+		return s.selectSync()
 	case ActionSync:
 		m := item.Info.(*bdpan.SyncModel)
 		err = m.Exec()
@@ -91,13 +93,22 @@ func (s SyncCommand) handleAction(item *bdpan.SelectItem) error {
 func (s SyncCommand) selectSystem(item *bdpan.SelectItem) error {
 	systems := []*bdpan.SelectItem{
 		&bdpan.SelectItem{
+			Name:   "Back",
+			Icon:   "",
+			Desc:   "返回上一级",
+			Info:   item.Info,
+			Action: bdpan.ActionBack,
+		},
+		&bdpan.SelectItem{
 			Name:   "Sync",
+			Icon:   "",
 			Desc:   "进行一次同步操作",
 			Info:   item.Info,
 			Action: ActionSync,
 		},
 		&bdpan.SelectItem{
 			Name:   "Delete",
+			Icon:   "",
 			Desc:   "删除操作",
 			Info:   item.Info,
 			Action: bdpan.ActionDelete,
