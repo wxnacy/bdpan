@@ -73,11 +73,18 @@ type FileListRequest struct {
 	page  int
 	start int
 	limit int32
+	// 排序字段：默认为name；
+	// time表示先按文件类型排序，后按修改时间排序；
+	// name表示先按文件类型排序，后按文件名称排序；
+	// size表示先按文件类型排序，后按文件大小排序。
+	order string
+	// 默认为升序，设置为1实现降序 （注：排序的对象是当前目录下所有文件，不是当前分页下的文件）
+	desc int32
 }
 
 func NewFileListRequest() FileListRequest {
 	return FileListRequest{
-		web: 1, start: 0, limit: 1000,
+		web: 1, start: 0, limit: 1000, order: "name",
 	}
 }
 
@@ -86,8 +93,23 @@ func (r FileListRequest) Dir(dir string) FileListRequest {
 	return r
 }
 
+func (r FileListRequest) Order(s string) FileListRequest {
+	r.order = s
+	return r
+}
+
 func (r FileListRequest) Web(web int) FileListRequest {
 	r.web = web
+	return r
+}
+
+func (r FileListRequest) Desc(d int32) FileListRequest {
+	r.desc = d
+	return r
+}
+
+func (r FileListRequest) Limit(l int32) FileListRequest {
+	r.limit = l
 	return r
 }
 

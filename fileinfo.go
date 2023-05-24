@@ -97,7 +97,8 @@ func fileList(req FileListRequest) (*FileListResponse, error) {
 	_, r, err := GetClient().FileinfoApi.Xpanfilelist(
 		context.Background()).AccessToken(
 		token.AccessToken).Dir(dir).Web(req.GetWeb()).Start(
-		req.GetStart()).Limit(req.limit).Execute()
+		req.GetStart()).Order(req.order).Desc(req.desc).Limit(req.limit).
+		Execute()
 	Log.Debugf("Xpanfilelist resp: %v", r)
 	Log.Debugf("Xpanfilelist err: %v", err)
 	if err != nil {

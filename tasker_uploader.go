@@ -156,9 +156,9 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 	return err
 }
 
-func (m *UploadTasker) BeforeRun() error {
+func (u *UploadTasker) BeforeRun() error {
 	var err error
-	m.existFileMap, err = getDirFileInfoMap(m.toDir, true)
+	u.existFileMap, err = u.getExistFileMap()
 	if err != nil && err != ErrPathNotFound {
 		return err
 	}
@@ -168,6 +168,45 @@ func (m *UploadTasker) BeforeRun() error {
 func (u *UploadTasker) Exec() error {
 	return tasker.ExecTasker(u, u.IsSync)
 }
+
+func (u *UploadTasker) getExistFileMap() (map[string]FileInfoDto, error) {
+	files, err := u.getExistFiles(u.toDir, u.From)
+	if err != nil {
+		return nil, err
+	}
+
+	m := map[string]FileInfoDto{}
+	for _, file := range files {
+		key := strings.TrimLeft(strings.Replace(file.Path, u.toDir, "", 1), "/")
+		m[key] = file
+	}
+	return m, nil
+}
+
+func (u *UploadTasker) getExistFiles(dir, local string) ([]FileInfoDto, error) {
+	files, err := getFileInfosByLocal(dir, local, u.IsIncludeHide)
+	if err != nil {
+		return nil, err
+	}
+
+	resFiles := make([]FileInfoDto, 0)
+	for _, f := range files {
+		if f.IsDir() && u.IsRecursion {
+			dirFiles, err := u.getExistFiles(f.Path, "")
+			if err != nil {
+				return nil, err
+			}
+			resFiles = append(resFiles, dirFiles...)
+		} else {
+			resFiles = append(resFiles, *f)
+		}
+	}
+	return resFiles, nil
+}
+
+// -------------------------------------
+// UploadFragmentTasker
+// -------------------------------------
 
 type UFTaskInfo struct {
 	Index int
