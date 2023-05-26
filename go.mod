@@ -12,7 +12,7 @@ require (
 	github.com/wxnacy/dler v0.7.1
 	github.com/wxnacy/go-pretty v0.0.1
 	github.com/wxnacy/go-tasker v0.0.5
-	github.com/wxnacy/go-tools v0.0.8
+	github.com/wxnacy/go-tools v0.0.9
 	github.com/wxnacy/gotool v0.0.5
 )
 

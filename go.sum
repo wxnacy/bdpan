@@ -87,6 +87,8 @@ github.com/wxnacy/go-tasker v0.0.5 h1:wJgF0/meqBsSIaQy7wxESraXiiQlmLoUXSulGnYbPX
 github.com/wxnacy/go-tasker v0.0.5/go.mod h1:y/us77XHB41DDoF8xzOuBUodfwOHEQFgALJ0YGL+YdU=
 github.com/wxnacy/go-tools v0.0.8 h1:J/NBAKah9NV+EuHKO4epQ/5uyQAHgL5QY3Sit/oghbc=
 github.com/wxnacy/go-tools v0.0.8/go.mod h1:rbnAW5K6jLHP0EFMtrnDZ1dn8hs3gYI90q5Y84874sA=
+github.com/wxnacy/go-tools v0.0.9 h1:RW9physQIiKsLxusbvB4N+TNZsOepM+PXzintZpREgI=
+github.com/wxnacy/go-tools v0.0.9/go.mod h1:rbnAW5K6jLHP0EFMtrnDZ1dn8hs3gYI90q5Y84874sA=
 github.com/wxnacy/gotool v0.0.5 h1:ua0Fchz5KI9BxvuxVyNSUKZdCctAjnA05Z2je1kN+uw=
 github.com/wxnacy/gotool v0.0.5/go.mod h1:yHj/jvel69XkKNsAI5ZX9KCS8WO6f8kOnk0Yj7KotTY=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
