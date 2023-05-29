@@ -2,16 +2,19 @@ package bdpan
 
 import (
 	"io"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	Log *logrus.Logger
+	Log     *logrus.Logger
+	logFile *os.File
 )
 
 func initLogger() {
 	GetLogger()
+	logFile, _ = os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend|os.ModePerm)
 }
 
 func createLogger() *logrus.Logger {
@@ -42,6 +45,11 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 func SetLogLevel(level logrus.Level) {
 	Log.SetLevel(level)
+}
+
+// 设置日志输出文件
+func SetOutputFile() {
+	Log.SetOutput(logFile)
 }
 
 func GetLogger() *logrus.Logger {
