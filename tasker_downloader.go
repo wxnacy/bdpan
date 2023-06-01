@@ -1,12 +1,12 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/dler"
 	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/go-tools"

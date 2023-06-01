@@ -1,13 +1,13 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/wxnacy/go-tools"
 	"github.com/wxnacy/gotool"
 )
 
@@ -65,9 +65,9 @@ func GetConfig() (*Config, error) {
 		return _config, nil
 	}
 
-	if common.FileExists(configPath) {
+	if tools.FileExists(configPath) {
 		config := &Config{}
-		err := common.ReadFileToInterface(configPath, config)
+		err := tools.FileReadForInterface(configPath, config)
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +89,7 @@ func initCryptoKey() error {
 	if gotool.FileExists(keyPath) {
 		return nil
 	}
-	key := common.Md5(strconv.Itoa(int(time.Now().Unix())))
+	key := tools.Md5(strconv.Itoa(int(time.Now().Unix())))
 	return gotool.FileWriteWithInterface(keyPath, key)
 }
 
@@ -103,7 +103,7 @@ func GetKey() ([]byte, error) {
 
 func saveCredentail(credentials []_Credential, c Credential) error {
 	credentials = append(credentials, *newCredentail(c))
-	return common.WriteInterfaceToFile(credentialsPath, credentials)
+	return tools.FileWriteWithInterface(credentialsPath, credentials)
 }
 
 func GetCredentail(appId string) (*Credential, error) {
@@ -125,7 +125,7 @@ func GetCredentail(appId string) (*Credential, error) {
 
 func GetCredentails() ([]*Credential, error) {
 	credentials := make([]_Credential, 0)
-	err := common.ReadFileToInterface(credentialsPath, &credentials)
+	err := tools.FileReadForInterface(credentialsPath, &credentials)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func GetCredentails() ([]*Credential, error) {
 
 func AddCredentail(c Credential) error {
 	credentials := make([]_Credential, 0)
-	err := common.ReadFileToInterface(credentialsPath, &credentials)
+	err := tools.FileReadForInterface(credentialsPath, &credentials)
 	if err != nil {
 		// TODO: 增加错误日志
 		credentials = make([]_Credential, 0)
@@ -152,7 +152,7 @@ func AddCredentail(c Credential) error {
 }
 
 func saveAccessToken(appId string, t AccessToken) error {
-	m, err := common.ReadFileToMap(tokenPath)
+	m, err := tools.FileReadToMap(tokenPath)
 	if err != nil {
 		m = make(map[string]interface{}, 0)
 	}
@@ -162,7 +162,7 @@ func saveAccessToken(appId string, t AccessToken) error {
 	}
 	m[appId] = tokenStr
 
-	err = common.WriteMapToFile(tokenPath, m)
+	err = tools.FileWriteWithInterface(tokenPath, m)
 	if err != nil {
 		return err
 	}

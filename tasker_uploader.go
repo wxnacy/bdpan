@@ -1,7 +1,6 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"context"
 	"fmt"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/go-tools"
 )

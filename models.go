@@ -1,7 +1,6 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +8,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/go-pretty"
 	"github.com/wxnacy/go-tools"
 )

@@ -1,7 +1,6 @@
 package bdpan
 
 import (
-	"bdpan/openapi"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,6 +10,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/wxnacy/bdpan/openapi"
 )
 
 func convertErrorResponse(r *http.Response) *ErrorResponse {
