@@ -7,6 +7,8 @@ import (
 	"io"
 	"path/filepath"
 	"strings"
+
+	"github.com/wxnacy/dler"
 )
 
 func GetDirAllFiles(dir string) ([]*FileInfoDto, error) {
@@ -186,6 +188,18 @@ func GetFileDLink(fsid uint64) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s&access_token=%s", fileDto.Dlink, token.AccessToken), nil
+}
+
+func GetFileBytes(fsid uint64) ([]byte, error) {
+	headers := map[string]string{
+		"User-Agent": "pan.baidu.com",
+		"Host":       "d.pcs.baidu.com",
+	}
+	uri, err := GetFileDLink(fsid)
+	if err != nil {
+		return nil, err
+	}
+	return dler.NewRequest().SetHeaders(headers).GetBytes(uri)
 }
 
 func GetUriBytes(uri string, rangeStart, rangeEnd int) ([]byte, error) {
