@@ -30,7 +30,10 @@ func TaskUploadDir(from, to string, isSync bool, isRecursion bool, isIncludeHide
 		}
 	}
 	// 构建上传任务
-	t := NewUploadTasker(from, to)
+	t, err := NewUploadTasker(from, to)
+	if err != nil {
+		return err
+	}
 	t.IsSync = isSync
 	t.IsRecursion = isRecursion
 	t.IsIncludeHide = isIncludeHide
@@ -58,21 +61,20 @@ func NewUploadDirTasker(from, to string) (*UploadTasker, error) {
 		}
 	}
 	// 构建上传任务
-	t := NewUploadTasker(from, to)
-	return t, nil
+	return NewUploadTasker(from, to)
 }
 
-func NewUploadTasker(from, to string) *UploadTasker {
+func NewUploadTasker(from, to string) (*UploadTasker, error) {
 	Log.Debugf("NewUploadTasker from: %s, to: %s", from, to)
 	t := UploadTasker{Tasker: tasker.NewTasker()}
 	t.From = from
 	t.toDir = to
+	t.To = to
 	_, err := os.Stat(from)
 	if err != nil {
-		fmt.Print(err)
-		panic(err)
+		return nil, err
 	}
-	return &t
+	return &t, nil
 }
 
 type UploadTasker struct {
@@ -158,7 +160,7 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 
 func (u *UploadTasker) BeforeRun() error {
 	var err error
-	u.existFileMap, err = u.getExistFileMap()
+	u.existFileMap, err = u.GetExistFileMap()
 	if err != nil && err != ErrPathNotFound {
 		return err
 	}
@@ -169,6 +171,17 @@ func (u *UploadTasker) Exec() error {
 	return tasker.ExecTasker(u, u.IsSync)
 }
 
+func (u *UploadTasker) GetExistFileMap() (map[string]FileInfoDto, error) {
+	if u.existFileMap != nil {
+		return u.existFileMap, nil
+	}
+	var err error
+	u.existFileMap, err = u.getExistFileMap()
+	if err != nil && err != ErrPathNotFound {
+		return nil, err
+	}
+	return u.existFileMap, nil
+}
 func (u *UploadTasker) getExistFileMap() (map[string]FileInfoDto, error) {
 	files, err := u.getExistFiles(u.toDir, u.From)
 	if err != nil {

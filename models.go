@@ -254,10 +254,13 @@ func (s *SyncModel) Exec() error {
 }
 
 func (s *SyncModel) Backup() error {
-	uTasker := NewUploadTasker(s.Local, s.Remote)
+	uTasker, err := NewUploadTasker(s.Local, s.Remote)
+	if err != nil {
+		return err
+	}
 	uTasker.IsIncludeHide = s.HasHide
 	uTasker.IsRecursion = true
-	err := uTasker.Exec()
+	err = uTasker.Exec()
 	if err != nil {
 		return err
 	}
