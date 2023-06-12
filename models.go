@@ -121,7 +121,18 @@ func NewSyncModel(local, remote string, mode SyncMode) *SyncModel {
 	return item
 }
 
-func GetModels() (m map[string]*SyncModel) {
+// 获取存在的同步模型集合
+func GetSyncModelsByRemote(path string) (models []*SyncModel) {
+	for _, m := range GetSyncModels() {
+		if m.Remote == path {
+			models = append(models, m)
+		}
+	}
+	return
+}
+
+// 获取存在的同步模型集合
+func GetSyncModels() (m map[string]*SyncModel) {
 	err := tools.FileReadForInterface(syncPath, &m)
 	if err != nil {
 		m = make(map[string]*SyncModel)
@@ -129,8 +140,8 @@ func GetModels() (m map[string]*SyncModel) {
 	return
 }
 
-func MustGetModel(id string) (m *SyncModel) {
-	models := GetModels()
+func MustGetSyncModel(id string) (m *SyncModel) {
+	models := GetSyncModels()
 	m, exits := models[id]
 	if !exits {
 		panic(fmt.Errorf("%s 不存在", id))
@@ -140,7 +151,7 @@ func MustGetModel(id string) (m *SyncModel) {
 
 func PrintSyncModelList() {
 	modelSlice := make([]*SyncModel, 0)
-	for _, f := range GetModels() {
+	for _, f := range GetSyncModels() {
 		modelSlice = append(modelSlice, f)
 	}
 	slice := SyncModelSlice(modelSlice)
@@ -150,7 +161,7 @@ func PrintSyncModelList() {
 }
 
 func DeleteSyncModel(id string) error {
-	models := GetModels()
+	models := GetSyncModels()
 	m, flag := models[id]
 	if !flag {
 		return fmt.Errorf("%s 不存在", id)
@@ -265,7 +276,7 @@ func (s *SyncModel) Backup() error {
 		return err
 	}
 	s.LastSyncTime = time.Now()
-	models := GetModels()
+	models := GetSyncModels()
 	models[s.ID] = s
 	return SaveModels(models)
 }
