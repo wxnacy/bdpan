@@ -131,6 +131,17 @@ func GetSyncModelsByRemote(path string) (models []*SyncModel) {
 	return
 }
 
+// 按照时间顺序排列模型
+func GetSyncModelSlice() []*SyncModel {
+	modelSlice := make([]*SyncModel, 0)
+	for _, f := range GetSyncModels() {
+		modelSlice = append(modelSlice, f)
+	}
+	slice := SyncModelSlice(modelSlice)
+	sort.Sort(slice)
+	return slice
+}
+
 // 获取存在的同步模型集合
 func GetSyncModels() (m map[string]*SyncModel) {
 	err := tools.FileReadForInterface(syncPath, &m)
@@ -150,33 +161,18 @@ func MustGetSyncModel(id string) (m *SyncModel) {
 }
 
 func PrintSyncModelList() {
-	modelSlice := make([]*SyncModel, 0)
-	for _, f := range GetSyncModels() {
-		modelSlice = append(modelSlice, f)
-	}
-	slice := SyncModelSlice(modelSlice)
-	sort.Sort(slice)
-	pretty.PrintList(slice)
+	slice := GetSyncModelSlice()
+	pretty.PrintList(SyncModelSlice(slice))
 
 }
 
 func DeleteSyncModel(id string) error {
 	models := GetSyncModels()
-	m, flag := models[id]
-	if !flag {
-		return fmt.Errorf("%s 不存在", id)
-	}
-	fmt.Println(m.Desc())
-	flag = PromptConfirm("确定删除")
-	if !flag {
-		return nil
-	}
 	delete(models, id)
 	err := SaveModels(models)
 	if err != nil {
 		return err
 	}
-	PrintSyncModelList()
 	return nil
 }
 
