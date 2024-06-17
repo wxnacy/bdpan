@@ -67,6 +67,7 @@ func NewUploadDirTasker(from, to string) (*UploadTasker, error) {
 func NewUploadTasker(from, to string) (*UploadTasker, error) {
 	Log.Debugf("NewUploadTasker from: %s, to: %s", from, to)
 	t := UploadTasker{Tasker: tasker.NewTasker()}
+	t.Tasker.Config.RetryMaxTime = 5
 	t.From = from
 	t.toDir = to
 	t.To = to
@@ -109,7 +110,7 @@ func (m *UploadTasker) BuildTasks() error {
 			info, _ := os.Stat(path)
 			to := filepath.Join(m.toDir, subDir, info.Name())
 			taskInfo := UploadTaskInfo{From: from, To: to}
-			Log.Debugf("add Task: %#v", taskInfo)
+			Log.Infof("add Task: %#v", taskInfo)
 			m.AddTask(&tasker.Task{Info: taskInfo})
 		}
 		return nil
@@ -149,10 +150,11 @@ func (m UploadTasker) RunTask(task *tasker.Task) error {
 			return err
 		}
 		if existFile.LocalMTime == mtime.Unix() {
-			Log.Debugf("%s upload already", info.From)
+			Log.Infof("Upload already %s", info.From)
 			return nil
 		}
 	}
+	Log.Infof("Upload file %s to %s", info.From, info.To)
 	req := NewUploadFileRequest(info.From, info.To).IsSync(true)
 	_, err := req.Execute()
 	return err
