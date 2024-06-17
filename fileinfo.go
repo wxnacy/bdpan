@@ -234,6 +234,21 @@ func DeleteFile(path string) error {
 	return nil
 }
 
+func DeleteFiles(paths []string) error {
+	Log.Infof("开始删除 %v", paths)
+	var files = make([]*FileManagerFile, 0)
+	for _, p := range paths {
+		f := NewFileManagerFile(p, "", "", "")
+		files = append(files, f)
+	}
+	_, err := NewFileManagerRequest(OperaDelete, files).Execute()
+	if err != nil {
+		return err
+	}
+	Log.Info("删除成功")
+	return nil
+}
+
 func MoveFile(path, toPath string) error {
 	Log.Infof("移动文件 %s ==> %s", path, toPath)
 	_, err := NewFileManagerRequest(
@@ -249,6 +264,24 @@ func MoveFile(path, toPath string) error {
 	return nil
 }
 
+func MoveFiles(paths []string, toDir string) error {
+	Log.Infof("移动文件 %v ==> %s", paths, toDir)
+	var files = make([]*FileManagerFile, 0)
+	for _, p := range paths {
+		f := NewFileManagerFile(p, toDir, filepath.Base(p), "")
+		files = append(files, f)
+	}
+	_, err := NewFileManagerRequest(
+		OperaMove,
+		files,
+	).Execute()
+	if err != nil {
+		return err
+	}
+	Log.Info("移动成功")
+	return nil
+}
+
 func CopyFile(path, toPath string) error {
 	Log.Infof("复制文件 %s ==> %s", path, toPath)
 	_, err := NewFileManagerRequest(
@@ -256,6 +289,24 @@ func CopyFile(path, toPath string) error {
 		[]*FileManagerFile{
 			NewFileManagerFile(path, filepath.Dir(toPath), filepath.Base(toPath), ""),
 		},
+	).SetOndup(OndupOverwrite).Execute()
+	if err != nil {
+		return err
+	}
+	Log.Info("复制成功")
+	return nil
+}
+
+func CopyFiles(paths []string, toDir string) error {
+	Log.Infof("复制文件 %v ==> %s", paths, toDir)
+	var files = make([]*FileManagerFile, 0)
+	for _, p := range paths {
+		f := NewFileManagerFile(p, toDir, filepath.Base(p), "")
+		files = append(files, f)
+	}
+	_, err := NewFileManagerRequest(
+		OperaCopy,
+		files,
 	).SetOndup(OndupOverwrite).Execute()
 	if err != nil {
 		return err
