@@ -60,24 +60,10 @@ func CreateAccessTokenByDeviceCode() error {
 		credentail.AppKey).ClientSecret(
 		credentail.SecretKey).Execute()
 	if err != nil {
-		convertErrorResponse(r).Print()
+		// convertErrorResponse(r).Print()
+		Log.Errorf("OauthTokenDeviceToken %v %v", err, convertErrorResponse(r))
 		return err
 	}
-	// fmt.Println(errRes)
-	// for errRes != nil {
-	// time.Sleep(time.Duration(2) * time.Second)
-	// tokenRes, errRes = getAccessTokenByDeviceCode(code)
-	// errRes.Print()
-	// fmt.Fprintln(os.Stderr, "等待重试...")
-	// }
-	// fmt.Println(*tokenRes.AccessToken)
-	// fmt.Println(*tokenRes.RefreshToken)
-	// fmt.Println(*tokenRes.ExpiresIn)
-
-	// var _token AccessToken
-	// _token.AccessToken = *tokenRes.AccessToken
-	// _token.RefreshToken = *tokenRes.RefreshToken
-	// _token.ExpiresIn = *tokenRes.ExpiresIn
 	token := AccessToken{}
 	httpResponseToInterface(r, &token)
 	saveAccessToken(credentail.AppId, token)
