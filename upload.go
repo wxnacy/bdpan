@@ -1,12 +1,12 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"context"
 	"encoding/json"
 	"errors"
 	"os"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/go-tasker"
 	"github.com/wxnacy/gotool"
 )

@@ -1,13 +1,13 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/dler"
 	"github.com/wxnacy/go-tools"
 )

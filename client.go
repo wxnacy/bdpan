@@ -1,7 +1,7 @@
 package bdpan
 
 import (
-	sdk "bdpan/openapi"
+	sdk "github.com/wxnacy/bdpan/openapi"
 )
 
 func init() {

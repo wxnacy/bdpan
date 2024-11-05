@@ -1,4 +1,4 @@
-module bdpan
+module github.com/wxnacy/bdpan
 
 go 1.22.0
 

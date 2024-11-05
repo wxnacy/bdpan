@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"bdpan"
 	"fmt"
 	"os"
+
+	"github.com/wxnacy/bdpan"
 
 	"github.com/spf13/cobra"
 	"github.com/wxnacy/go-tools"

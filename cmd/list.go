@@ -1,14 +1,14 @@
 /*
 Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
-	"bdpan"
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/wxnacy/bdpan"
 
 	"github.com/spf13/cobra"
 	"github.com/wxnacy/go-tools"

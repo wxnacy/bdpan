@@ -1,13 +1,13 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/gotool"
 )
 

@@ -1,7 +1,6 @@
 package bdpan
 
 import (
-	"bdpan/common"
 	"encoding/hex"
 	"encoding/json"
 	"io/ioutil"
@@ -13,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/wxnacy/bdpan/common"
 	"github.com/wxnacy/gotool"
 )
 

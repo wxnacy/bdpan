@@ -1,17 +1,16 @@
 /*
 Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
-	"bdpan"
-	"bdpan/common"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/wxnacy/bdpan"
+	"github.com/wxnacy/bdpan/common"
 )
 
 var (

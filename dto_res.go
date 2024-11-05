@@ -1,11 +1,11 @@
 package bdpan
 
 import (
-	"bdpan/openapi"
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/wxnacy/bdpan/openapi"
 	"github.com/wxnacy/go-pretty"
 	"github.com/wxnacy/go-tools"
 	"github.com/wxnacy/gotool"

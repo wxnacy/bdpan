@@ -5,7 +5,7 @@ doc: https://pan.baidu.com/union/doc/pkuo3snyp
 package cmd
 
 import (
-	"bdpan"
+	"github.com/wxnacy/bdpan"
 
 	"github.com/spf13/cobra"
 )

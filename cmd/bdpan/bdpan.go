@@ -1,6 +1,6 @@
 package main
 
-import "bdpan/cmd"
+import "github.com/wxnacy/bdpan/cmd"
 
 func main() {
 	cmd.Execute()
