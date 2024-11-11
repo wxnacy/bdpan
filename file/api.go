@@ -22,3 +22,27 @@ func GetFileList(accessToken string, req *GetFileListReq) (*GetFileListRes, erro
 		Execute()
 	return response.ToInterface[GetFileListRes](r)
 }
+
+// 获取文件详情
+func GetFileInfo(accessToken string, req *GetFileInfoReq) (*GetFileInfoRes, error) {
+	batchReq := NewBatchGetFileListReq(req.FSID)
+	batchReq.Dlink = req.Dlink
+	res, err := BatchGetFileInfo(accessToken, batchReq)
+	if err != nil {
+		return nil, err
+	}
+	return &GetFileInfoRes{
+		FileInfoDto: *res.List[0],
+	}, nil
+}
+
+// 批量获取文件详情
+func BatchGetFileInfo(accessToken string, req *BatchGetFileInfoReq) (*BatchGetFileInfoRes, error) {
+	_, r, _ := bdpan.GetClient().
+		MultimediafileApi.Xpanmultimediafilemetas(
+		context.Background()).AccessToken(accessToken).
+		Dlink(req.GetDlink()).
+		Fsids(req.GetFSIDString()).
+		Execute()
+	return response.ToInterface[BatchGetFileInfoRes](r)
+}

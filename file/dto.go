@@ -1,6 +1,11 @@
 package file
 
-import "github.com/wxnacy/bdpan"
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/wxnacy/bdpan"
+)
 
 func NewGetFileListReq() *GetFileListReq {
 	return &GetFileListReq{
@@ -28,8 +33,51 @@ type GetFileListReq struct {
 }
 
 type GetFileListRes struct {
-	bdpan.FileInfoDto
 	GuidInfo string               `json:"guid_info"`
 	Errmsg   string               `json:"errmsg"`
 	List     []*bdpan.FileInfoDto `json:"list"`
+}
+
+func NewGetFileInfoReq(fsid uint64) *GetFileInfoReq {
+	return &GetFileInfoReq{
+		FSID: fsid,
+	}
+}
+
+type GetFileInfoReq struct {
+	Dlink int
+	FSID  uint64
+}
+
+type GetFileInfoRes struct {
+	bdpan.FileInfoDto
+}
+
+func NewBatchGetFileListReq(fsid uint64) *BatchGetFileInfoReq {
+	return &BatchGetFileInfoReq{
+		FSIds: []uint64{fsid},
+	}
+}
+
+type BatchGetFileInfoReq struct {
+	Dlink int
+	FSIds []uint64
+}
+
+func (r *BatchGetFileInfoReq) AppendFSID(fsid uint64) *BatchGetFileInfoReq {
+	r.FSIds = append(r.FSIds, fsid)
+	return r
+}
+
+func (r *BatchGetFileInfoReq) GetFSIDString() string {
+	bytesData, _ := json.Marshal(r.FSIds)
+	return string(bytesData)
+}
+
+func (r *BatchGetFileInfoReq) GetDlink() string {
+	return fmt.Sprintf("%d", r.Dlink)
+}
+
+type BatchGetFileInfoRes struct {
+	List []*bdpan.FileInfoDto `json:"list"`
 }
