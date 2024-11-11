@@ -11,6 +11,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
+	github.com/stretchr/testify v1.9.0
 	github.com/wxnacy/dler v0.7.2
 	github.com/wxnacy/go-pretty v0.0.1
 	github.com/wxnacy/go-tasker v0.0.6
@@ -57,6 +58,7 @@ require (
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // replace github.com/wxnacy/go-tools => ../gotool
