@@ -3,6 +3,7 @@ package file
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/wxnacy/bdpan"
 	"github.com/wxnacy/bdpan/response"
@@ -45,4 +46,16 @@ func BatchGetFileInfo(accessToken string, req *BatchGetFileInfoReq) (*BatchGetFi
 		Fsids(req.GetFSIDString()).
 		Execute()
 	return response.ToInterface[BatchGetFileInfoRes](r)
+}
+
+// 搜索文件
+func SearchFile(accessToken string, req *SearchFileReq) (*SearchFileRes, error) {
+	_, r, _ := bdpan.GetClient().
+		FileinfoApi.Xpanfilesearch(context.Background()).
+		AccessToken(accessToken).
+		Key(req.Key).
+		Recursion(strconv.Itoa(req.Recursion)).
+		Dir(req.Dir).
+		Execute()
+	return response.ToInterface[SearchFileRes](r)
 }

@@ -20,7 +20,7 @@ func NewGetFileListReq() *GetFileListReq {
 type GetFileListReq struct {
 	Dir   string
 	Web   int
-	Page  int
+	page  int
 	Start int
 	Limit int32
 	// 排序字段：默认为name；
@@ -30,6 +30,11 @@ type GetFileListReq struct {
 	Order string
 	// 默认为升序，设置为1实现降序 （注：排序的对象是当前目录下所有文件，不是当前分页下的文件）
 	Desc int32
+}
+
+func (r *GetFileListReq) SetPage(page int) *GetFileListReq {
+	r.Start = (page - 1) * int(r.Limit)
+	return r
 }
 
 type GetFileListRes struct {
@@ -80,4 +85,15 @@ func (r *BatchGetFileInfoReq) GetDlink() string {
 
 type BatchGetFileInfoRes struct {
 	List []*bdpan.FileInfoDto `json:"list"`
+}
+
+type SearchFileReq struct {
+	Dir       string
+	Key       string
+	Recursion int
+}
+
+type SearchFileRes struct {
+	HasMore int                  `json:"has_more"`
+	List    []*bdpan.FileInfoDto `json:"list"`
 }
